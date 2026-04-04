@@ -11,7 +11,11 @@
       "Bash(gh auth:*)",
       "Bash(git --version)",
       "Bash(git remote:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npm why:*)",
+      "Bash(npm info:*)",
+      "Bash(npm --version)",
+      "Bash(git rm:*)"
     ]
   }
 }

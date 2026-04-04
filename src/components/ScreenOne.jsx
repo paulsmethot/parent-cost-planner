@@ -11,19 +11,24 @@ const PROVINCES = [
   { code: 'NL', name: 'Newfoundland & Labrador' },
 ]
 
-const BABY_STAGES = [
-  { value: 'expecting', label: 'Expecting', desc: 'Due within the year' },
-  { value: 'newborn', label: 'Newborn', desc: '0–6 months' },
-  { value: 'infant', label: 'Infant', desc: '6–18 months' },
-  { value: 'toddler', label: 'Toddler', desc: '18 months – 3 years' },
-]
-
 export default function ScreenOne({ values, onChange, onNext, onBack }) {
-  const { province, babyStage } = values
-  const canContinue = province && babyStage
+  const { province, isExpecting, babyDOB } = values
+
+  const today = new Date().toISOString().split('T')[0]
+  // Max due date ~10 months out; min DOB ~6 years back
+  const minDOB = new Date(new Date().setFullYear(new Date().getFullYear() - 6)).toISOString().split('T')[0]
+  const maxDue = new Date(new Date().setMonth(new Date().getMonth() + 10)).toISOString().split('T')[0]
+
+  const canContinue = province && babyDOB
+
+  function handleToggle(expecting) {
+    onChange('isExpecting', expecting)
+    onChange('babyDOB', '') // clear date when switching mode
+  }
 
   return (
     <div className="space-y-10">
+
       {/* Province */}
       <div className="space-y-3">
         <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
@@ -55,33 +60,61 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
         </div>
       </div>
 
-      {/* Baby stage */}
-      <div className="space-y-3">
+      {/* Baby status toggle + date picker */}
+      <div className="space-y-4">
         <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
-          What stage are you at?
+          {isExpecting ? 'When is your baby due?' : 'When was your baby born?'}
         </h2>
-        <p className="text-sm text-[var(--color-muted)]">
-          This shapes your timeline and what we focus on.
-        </p>
-        <div className="grid grid-cols-2 gap-2.5">
-          {BABY_STAGES.map((s) => (
-            <button
-              key={s.value}
-              onClick={() => onChange('babyStage', s.value)}
-              className={`
-                py-4 px-4 rounded-[12px] text-left transition-all duration-150
-                ${babyStage === s.value
-                  ? 'bg-[var(--color-accent)] text-white'
-                  : 'bg-white text-[var(--color-charcoal)] border border-[var(--color-sand)] hover:border-[var(--color-accent)]'
-                }
-              `}
-            >
-              <div className="text-sm font-bold">{s.label}</div>
-              <div className={`text-xs mt-0.5 ${babyStage === s.value ? 'text-white/75' : 'text-[var(--color-muted)]'}`}>
-                {s.desc}
-              </div>
-            </button>
-          ))}
+
+        {/* Toggle */}
+        <div className="flex bg-white border border-[var(--color-sand)] rounded-[12px] p-1 gap-1">
+          <button
+            onClick={() => handleToggle(false)}
+            className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
+              !isExpecting
+                ? 'bg-[var(--color-accent)] text-white'
+                : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
+            }`}
+          >
+            My baby is already born
+          </button>
+          <button
+            onClick={() => handleToggle(true)}
+            className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
+              isExpecting
+                ? 'bg-[var(--color-accent)] text-white'
+                : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
+            }`}
+          >
+            I'm expecting
+          </button>
+        </div>
+
+        {/* Date input */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
+            {isExpecting ? 'Due date' : 'Date of birth'}
+          </label>
+          <input
+            type="date"
+            value={babyDOB}
+            min={isExpecting ? today : minDOB}
+            max={isExpecting ? maxDue : today}
+            onChange={(e) => onChange('babyDOB', e.target.value)}
+            className={`
+              w-full bg-white border rounded-[12px] px-4 py-4 text-base font-semibold
+              focus:outline-none transition-colors duration-150 cursor-pointer
+              ${babyDOB
+                ? 'border-[var(--color-accent)] text-[var(--color-charcoal)]'
+                : 'border-[var(--color-sand)] text-[var(--color-stone)]'
+              }
+            `}
+          />
+          {isExpecting && (
+            <p className="text-xs text-[var(--color-muted)]">
+              We'll anchor your timeline and leave window to this date.
+            </p>
+          )}
         </div>
       </div>
 

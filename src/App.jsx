@@ -4,20 +4,30 @@ import ScreenOne from './components/ScreenOne'
 import ScreenTwo from './components/ScreenTwo'
 import ScreenThree from './components/ScreenThree'
 import ScreenFour from './components/ScreenFour'
+import ScreenFive from './components/ScreenFive'
 import Results from './components/Results'
+
+const TOTAL_STEPS = 5
 
 const INITIAL_VALUES = {
   province: '',
-  babyStage: '',
+  isExpecting: false,
+  babyDOB: '',
   householdIncome: 85000,
   caregiverIncome: 65000,
   leaveType: 'standard',
   employerTopUp: 0,
+  additionalCosts: {
+    food: 0,
+    diapers: 0,
+    clothing: 0,
+    activities: 0,
+    extraChildcare: 0,
+    otherAmount: 0,
+    otherLabel: '',
+  },
 }
 
-const TOTAL_STEPS = 4
-
-// 4-segment progress bar + "Step X of 4" label
 function StepIndicator({ step }) {
   return (
     <div className="mb-10">
@@ -46,6 +56,14 @@ export default function App() {
     setValues((prev) => ({ ...prev, [key]: val }))
   }
 
+  // Nested handler for additionalCosts fields
+  function handleCostChange(key, val) {
+    setValues((prev) => ({
+      ...prev,
+      additionalCosts: { ...prev.additionalCosts, [key]: val },
+    }))
+  }
+
   const nav = {
     onNext: () => setStep((s) => s + 1),
     onBack: () => setStep((s) => s - 1),
@@ -56,22 +74,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[var(--color-cream)]">
-      {/*
-        key={step} forces React to remount this div on every step change,
-        which re-triggers the screen-enter CSS animation (200ms fade + slide up).
-      */}
       <div key={step} className="screen-enter">
 
         {/* Screen 0 — Intro */}
-        {step === 0 && (
-          <Intro onStart={() => setStep(1)} />
-        )}
+        {step === 0 && <Intro onStart={() => setStep(1)} />}
 
-        {/* Screens 1–4 — Intake steps */}
+        {/* Screens 1–5 — Intake */}
         {isIntake && (
           <div className="min-h-screen flex flex-col">
             <div className="w-full max-w-[640px] mx-auto px-6 py-12 flex-1">
               <StepIndicator step={step} />
+
               {step === 1 && (
                 <ScreenOne
                   values={values}
@@ -101,6 +114,14 @@ export default function App() {
                   values={values}
                   onChange={handleChange}
                   onBack={nav.onBack}
+                  onNext={nav.onNext}
+                />
+              )}
+              {step === 5 && (
+                <ScreenFive
+                  values={values}
+                  onCostChange={handleCostChange}
+                  onBack={nav.onBack}
                   onNext={() => setStep(TOTAL_STEPS + 1)}
                 />
               )}
@@ -108,13 +129,10 @@ export default function App() {
           </div>
         )}
 
-        {/* Screen 5 — Results dashboard */}
+        {/* Screen 6 — Results */}
         {isResults && (
           <div className="w-full max-w-[1100px] mx-auto px-6 py-12">
-            <Results
-              values={values}
-              onEdit={() => setStep(1)}
-            />
+            <Results values={values} onEdit={() => setStep(1)} />
           </div>
         )}
 
