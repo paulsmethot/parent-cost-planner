@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Nunito', sans-serif;
+
+  --color-cream: #FAF7F2;
+  --color-warm-white: #FFFDF9;
+  --color-sand: #E8DFD0;
+  --color-stone: #C4B89A;
+  --color-bark: #8C7A5E;
+  --color-charcoal: #2C2416;
+  --color-muted: #7A6E5F;
+
+  --color-accent: #D97941;
+  --color-accent-light: #F5E6D8;
+  --color-accent-dark: #B5612A;
+
+  --color-positive: #4A8C5C;
+  --color-positive-light: #E0F0E6;
+  --color-warning: #C4832A;
+  --color-warning-light: #FDF0DC;
+  --color-negative: #B84545;
+  --color-negative-light: #FAEBE8;
+}
+
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-charcoal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-slide-up {
+  animation: fadeSlideUp 0.4s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.35s ease-out forwards;
+}
+
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--color-sand);
+  height: 6px;
+  border-radius: 3px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -7px;
+  background-color: var(--color-accent);
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+input[type="range"]::-moz-range-track {
+  background: var(--color-sand);
+  height: 6px;
+  border-radius: 3px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background-color: var(--color-accent);
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
