@@ -9,6 +9,7 @@ const EI_EXTENDED_WEEKS = 76
 export function calcEIWeekly(caregiverIncome, leaveType) {
   const insurableAnnual = Math.min(caregiverIncome, EI_INSURABLE_CAP)
   const weeklyInsurable = insurableAnnual / 52
+  // topup uses standard EI rate — the top-up is layered on top separately
   const rate = leaveType === 'extended' ? EI_EXTENDED_RATE : EI_STANDARD_RATE
   return Math.round(weeklyInsurable * rate)
 }
@@ -75,16 +76,16 @@ export function calcIncomeDropMonthly(caregiverIncome, leaveType) {
 
 // ─── Net monthly impact ───────────────────────────────────────────────────────
 
-export function calcNetMonthlyImpact(caregiverIncome, householdIncome, province, leaveType, babyStage) {
+export function calcNetMonthlyImpact(caregiverIncome, householdIncome, province, leaveType, babyStage, employerTopUp = 0) {
   const eiMonthly = calcEIMonthly(caregiverIncome, leaveType)
   const ccbMonthly = calcCCBMonthly(householdIncome)
   const childcare = babyStage === 'expecting' || babyStage === 'newborn'
     ? 0
     : calcChildcareCost(province)
 
-  const inflow = eiMonthly + ccbMonthly
-  const outflow = childcare
-  return inflow - outflow
+  const topUp = leaveType === 'topup' ? (employerTopUp ?? 0) : 0
+  const inflow = eiMonthly + ccbMonthly + topUp
+  return inflow - childcare
 }
 
 // ─── Timeline ─────────────────────────────────────────────────────────────────
@@ -156,24 +157,53 @@ export function provinceName(code) {
   return names[code] ?? code
 }
 
+// ─── Compact one-line verdict (for results header) ───────────────────────────
+
+export function buildCompactVerdict(inputs) {
+  const { province, householdIncome, caregiverIncome, babyStage, leaveType, employerTopUp = 0 } = inputs
+  const isQC = province === 'QC'
+  const eiMonthly = calcEIMonthly(caregiverIncome, leaveType)
+  const ccbMonthly = calcCCBMonthly(householdIncome)
+  const childcare = calcChildcareCost(province)
+  const leaveMonths = calcLeaveMonths(leaveType)
+  const hasTopUp = leaveType === 'topup' && employerTopUp > 0
+  const fmt = (n) => '$' + Math.abs(Math.round(n)).toLocaleString('en-CA')
+
+  if (isQC) {
+    return `QPIP pays you ${fmt(eiMonthly)}/month and your subsidized childcare runs just $430/month — Quebec's setup is the strongest in Canada.`
+  }
+  if (babyStage === 'expecting' || babyStage === 'newborn') {
+    if (hasTopUp) {
+      return `EI plus your employer top-up brings in ${fmt(eiMonthly + employerTopUp)}/month for ${leaveMonths} months, with ${fmt(ccbMonthly)}/month in CCB on top.`
+    }
+    return `EI pays you roughly ${fmt(eiMonthly)}/month for ${leaveMonths} months, with ${fmt(ccbMonthly)}/month in Canada Child Benefit on top.`
+  }
+  return `Your CCB is worth ${fmt(ccbMonthly)}/month tax-free, and childcare in ${provinceName(province)} runs about ${fmt(childcare)}/month.`
+}
+
 // ─── Verdict paragraph ────────────────────────────────────────────────────────
 
 export function buildVerdict(inputs) {
-  const { province, householdIncome, caregiverIncome, babyStage, leaveType } = inputs
+  const { province, householdIncome, caregiverIncome, babyStage, leaveType, employerTopUp = 0 } = inputs
   const isQC = province === 'QC'
   const eiMonthly = calcEIMonthly(caregiverIncome, leaveType)
   const ccbMonthly = calcCCBMonthly(householdIncome)
   const childcare = calcChildcareCost(province)
   const drop = calcIncomeDropMonthly(caregiverIncome, leaveType)
   const leaveMonths = calcLeaveMonths(leaveType)
+  const hasTopUp = leaveType === 'topup' && employerTopUp > 0
 
-  const fmt = (n) => n.toLocaleString('en-CA')
+  const fmt = (n) => Math.abs(Math.round(n)).toLocaleString('en-CA')
 
   if (isQC) {
     return `Quebec's QPIP gives you stronger parental leave than anywhere else in Canada — your household will receive roughly $${fmt(eiMonthly)}/month during leave, plus $${fmt(ccbMonthly)}/month in CCB. Your subsidized childcare rate of $13.10/day ($430/month) dramatically reduces the financial hit of returning to work. The main task now is getting on a CPE waitlist early.`
   }
 
   if (babyStage === 'expecting' || babyStage === 'newborn') {
+    if (hasTopUp) {
+      const total = eiMonthly + employerTopUp
+      return `During your ${leaveMonths}-month leave, EI plus your employer top-up will bring in roughly $${fmt(total)}/month — a drop of $${fmt(drop - employerTopUp)}/month from your regular take-home. The Canada Child Benefit adds $${fmt(ccbMonthly)}/month on top. Your biggest financial decision in year one isn't the leave itself — it's childcare at $${fmt(childcare)}/month when you return.`
+    }
     return `During your ${leaveMonths}-month leave, EI will replace roughly $${fmt(eiMonthly)}/month of income — a drop of $${fmt(drop)}/month from your regular take-home. The Canada Child Benefit adds $${fmt(ccbMonthly)}/month to partially offset that. Your biggest financial decision in year one isn't the leave itself — it's childcare at $${fmt(childcare)}/month when you return.`
   }
 

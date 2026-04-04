@@ -73,6 +73,11 @@ body {
   animation: scaleIn 0.35s ease-out forwards;
 }
 
+/* Screen transition — 200ms, used on every screen change */
+.screen-enter {
+  animation: fadeSlideUp 0.2s ease-out both;
+}
+
 .stagger-1 { animation-delay: 0.05s; }
 .stagger-2 { animation-delay: 0.1s; }
 .stagger-3 { animation-delay: 0.15s; }
