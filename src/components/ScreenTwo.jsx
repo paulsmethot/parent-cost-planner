@@ -1,9 +1,17 @@
-function formatCAD(n) {
-  return '$' + Math.round(n).toLocaleString('en-CA')
-}
+import CurrencyInput from './CurrencyInput'
+
+const QUICK_SELECTS = [
+  { label: '$60K', value: 60000 },
+  { label: '$80K', value: 80000 },
+  { label: '$100K', value: 100000 },
+  { label: '$120K', value: 120000 },
+  { label: '$150K', value: 150000 },
+  { label: '$200K+', value: null },
+]
 
 export default function ScreenTwo({ values, onChange, onBack, onNext }) {
   const { householdIncome } = values
+  const canContinue = householdIncome > 0
 
   return (
     <div className="space-y-10">
@@ -12,39 +20,17 @@ export default function ScreenTwo({ values, onChange, onBack, onNext }) {
           What does your household earn today?
         </h2>
         <p className="text-sm text-[var(--color-muted)] leading-relaxed">
-          Include the combined salary of both parents or guardians, based on what you each earn today — before any leave begins.
+          Include the combined salary of both parents or guardians, before any leave begins.
         </p>
       </div>
 
-      {/* Slider */}
-      <div className="space-y-4">
-        <div>
-          <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide mb-1">
-            Total household income before baby arrives
-          </p>
-          <p className="text-4xl font-black text-[var(--color-accent)]">{formatCAD(householdIncome)}</p>
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={300000}
-          step={1000}
-          value={householdIncome}
-          onChange={(e) => onChange('householdIncome', Number(e.target.value))}
-          className="w-full"
-        />
-        <div className="flex justify-between text-xs text-[var(--color-stone)]">
-          <span>$0</span>
-          <span>$300,000</span>
-        </div>
-      </div>
-
-      {/* Context callout */}
-      <div className="bg-[var(--color-accent-light)] rounded-[12px] px-4 py-3.5">
-        <p className="text-xs text-[var(--color-accent)] font-semibold leading-relaxed">
-          This figure determines your Canada Child Benefit (CCB) — the higher your household income, the lower the monthly payment.
-        </p>
-      </div>
+      <CurrencyInput
+        value={householdIncome}
+        onChange={(v) => onChange('householdIncome', v)}
+        quickSelects={QUICK_SELECTS}
+        label="Total household income before baby arrives *"
+        hint="This determines your Canada Child Benefit. The higher your household income, the lower the monthly payment."
+      />
 
       <div className="flex gap-3">
         <button
@@ -55,7 +41,12 @@ export default function ScreenTwo({ values, onChange, onBack, onNext }) {
         </button>
         <button
           onClick={onNext}
-          className="flex-1 py-4 rounded-[20px] font-bold text-base bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)] active:scale-[0.98] transition-all duration-200"
+          disabled={!canContinue}
+          className={`flex-1 py-4 rounded-[20px] font-bold text-base transition-all duration-200 ${
+            canContinue
+              ? 'bg-[var(--color-accent)] text-white hover:opacity-80 active:scale-[0.98]'
+              : 'bg-[var(--color-sand)] text-[var(--color-stone)] cursor-not-allowed'
+          }`}
         >
           Continue →
         </button>

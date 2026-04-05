@@ -13,25 +13,23 @@ const INITIAL_VALUES = {
   province: '',
   isExpecting: false,
   babyDOB: '',
-  householdIncome: 85000,
-  caregiverIncome: 65000,
+  householdIncome: 0,
+  caregiverIncome: 0,
   leaveType: 'standard',
   employerTopUp: 0,
-  additionalCosts: {
-    food: 0,
-    diapers: 0,
-    clothing: 0,
-    activities: 0,
-    extraChildcare: 0,
-    otherAmount: 0,
-    otherLabel: '',
-  },
+  additionalCosts: [
+    { id: 'food', label: 'Baby food & formula', desc: 'Typically $100 to $300/month in year one', amount: 0 },
+    { id: 'diapers', label: 'Diapers & wipes', desc: 'Typically $80 to $150/month', amount: 0 },
+    { id: 'clothing', label: 'Clothing & gear', desc: 'Grows fast, budget $50 to $150/month', amount: 0 },
+    { id: 'activities', label: 'Lessons & activities', desc: 'Swimming, music, typically $100 to $200/month', amount: 0 },
+    { id: 'extraChildcare', label: 'Additional childcare', desc: 'Drop-in care, occasional sitters, etc.', amount: 0 },
+  ],
 }
 
 function StepIndicator({ step }) {
   return (
     <div className="mb-10">
-      <p className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-wider mb-3">
+      <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-3">
         Step {step} of {TOTAL_STEPS}
       </p>
       <div className="flex gap-1.5">
@@ -56,12 +54,9 @@ export default function App() {
     setValues((prev) => ({ ...prev, [key]: val }))
   }
 
-  // Nested handler for additionalCosts fields
-  function handleCostChange(key, val) {
-    setValues((prev) => ({
-      ...prev,
-      additionalCosts: { ...prev.additionalCosts, [key]: val },
-    }))
+  // ScreenFive sends the full costs array when navigating forward
+  function handleCostChange(newCosts) {
+    setValues((prev) => ({ ...prev, additionalCosts: newCosts }))
   }
 
   const nav = {

@@ -1,32 +1,45 @@
+import { useState } from 'react'
+
 const LEAVE_TYPES = [
   {
     value: 'standard',
     label: 'Standard',
-    desc: '12 months at 55% of insurable earnings — the most common choice',
+    desc: '12 months at 55% of insurable earnings. The most common choice.',
   },
   {
     value: 'extended',
     label: 'Extended',
-    desc: '18 months at 33% of insurable earnings — lower monthly but longer runway',
+    desc: '18 months at 33% of insurable earnings. Lower monthly but longer runway.',
   },
   {
     value: 'shared',
     label: 'Shared',
-    desc: 'Split between both parents — combined up to 12 or 18 months total',
+    desc: 'Split between both parents, up to 12 or 18 months combined.',
   },
   {
     value: 'topup',
     label: 'Employer top-up',
-    desc: 'Your employer supplements EI — common in government and some corporate roles',
+    desc: 'Your employer supplements EI. Common in government and some corporate roles.',
   },
 ]
 
-function formatCAD(n) {
-  return '$' + Math.round(n).toLocaleString('en-CA')
-}
-
 export default function ScreenFour({ values, onChange, onBack, onNext }) {
   const { leaveType, employerTopUp } = values
+  const [topUpDisplay, setTopUpDisplay] = useState(
+    employerTopUp > 0 ? employerTopUp.toLocaleString('en-CA') : ''
+  )
+
+  function handleTopUpInput(raw) {
+    const digits = raw.replace(/[^0-9]/g, '')
+    if (!digits) {
+      setTopUpDisplay('')
+      onChange('employerTopUp', 0)
+      return
+    }
+    const num = parseInt(digits, 10)
+    setTopUpDisplay(num.toLocaleString('en-CA'))
+    onChange('employerTopUp', num)
+  }
 
   return (
     <div className="space-y-10">
@@ -39,7 +52,7 @@ export default function ScreenFour({ values, onChange, onBack, onNext }) {
         </p>
       </div>
 
-      {/* Full leave type cards */}
+      {/* Leave type cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {LEAVE_TYPES.map((t) => {
           const selected = leaveType === t.value
@@ -51,7 +64,7 @@ export default function ScreenFour({ values, onChange, onBack, onNext }) {
                 text-left rounded-[16px] p-5 transition-all duration-150 border-2
                 ${selected
                   ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
-                  : 'bg-white border-[var(--color-sand)] text-[var(--color-charcoal)] hover:border-[var(--color-accent)]'
+                  : 'bg-white border-[var(--color-sand)] text-[var(--color-charcoal)] hover:border-[var(--color-bark)]'
                 }
               `}
             >
@@ -81,24 +94,22 @@ export default function ScreenFour({ values, onChange, onBack, onNext }) {
               Estimated monthly top-up from your employer
             </p>
             <p className="text-xs text-[var(--color-muted)] mt-0.5">
-              Optional — the amount your employer adds on top of EI each month.
+              Optional. The amount your employer adds on top of EI each month.
             </p>
           </div>
-          <div className="space-y-3">
-            <p className="text-3xl font-black text-[var(--color-accent)]">{formatCAD(employerTopUp ?? 0)}<span className="text-sm font-semibold text-[var(--color-muted)]">/month</span></p>
+          <div className={`flex items-center bg-[var(--color-warm-white)] border-2 rounded-[12px] px-4 py-3.5 transition-colors focus-within:border-[var(--color-accent)] ${
+            topUpDisplay ? 'border-[var(--color-accent)]' : 'border-[var(--color-sand)]'
+          }`}>
+            <span className="text-base font-semibold text-[var(--color-muted)] mr-1 shrink-0">$</span>
             <input
-              type="range"
-              min={0}
-              max={3000}
-              step={50}
-              value={employerTopUp ?? 0}
-              onChange={(e) => onChange('employerTopUp', Number(e.target.value))}
-              className="w-full"
+              type="text"
+              inputMode="numeric"
+              placeholder="e.g. 2,500"
+              value={topUpDisplay}
+              onChange={e => handleTopUpInput(e.target.value)}
+              className="flex-1 text-base font-semibold text-[var(--color-charcoal)] bg-transparent focus:outline-none"
             />
-            <div className="flex justify-between text-xs text-[var(--color-stone)]">
-              <span>$0</span>
-              <span>$3,000</span>
-            </div>
+            <span className="text-sm text-[var(--color-muted)] ml-1 shrink-0">/month</span>
           </div>
         </div>
       )}
@@ -112,9 +123,9 @@ export default function ScreenFour({ values, onChange, onBack, onNext }) {
         </button>
         <button
           onClick={onNext}
-          className="flex-1 py-4 rounded-[20px] font-bold text-lg bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)] active:scale-[0.98] transition-all duration-200"
+          className="flex-1 py-4 rounded-[20px] font-bold text-lg bg-[var(--color-accent)] text-white hover:opacity-80 active:scale-[0.98] transition-all duration-200"
         >
-          See my numbers →
+          Continue →
         </button>
       </div>
     </div>

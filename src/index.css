@@ -1,30 +1,34 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Nunito', sans-serif;
+  --font-sans: 'DM Sans', sans-serif;
 
-  --color-cream: #FAF7F2;
-  --color-warm-white: #FFFDF9;
-  --color-sand: #E8DFD0;
-  --color-stone: #C4B89A;
-  --color-bark: #8C7A5E;
-  --color-charcoal: #2C2416;
-  --color-muted: #7A6E5F;
+  --color-cream: #FFFFFF;
+  --color-warm-white: #F7F7F5;
+  --color-sand: #E5E5E3;
+  --color-stone: #ACACAA;
+  --color-bark: #555555;
+  --color-charcoal: #1A1A1A;
+  --color-muted: #6B6B6B;
 
-  --color-accent: #D97941;
-  --color-accent-light: #F5E6D8;
-  --color-accent-dark: #B5612A;
+  --color-accent: #1A1A1A;
+  --color-accent-light: #F0F0EF;
+  --color-accent-dark: #000000;
 
-  --color-positive: #4A8C5C;
-  --color-positive-light: #E0F0E6;
-  --color-warning: #C4832A;
-  --color-warning-light: #FDF0DC;
-  --color-negative: #B84545;
-  --color-negative-light: #FAEBE8;
+  --color-positive: #2D6A4F;
+  --color-positive-light: #E8F5EE;
+  --color-warning: #B45309;
+  --color-warning-light: #FEF3C7;
+  --color-negative: #C0392B;
+  --color-negative-light: #FDECEA;
 }
 
 * {
-  font-family: 'Nunito', sans-serif;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', serif;
 }
 
 body {
@@ -83,45 +87,3 @@ body {
 .stagger-3 { animation-delay: 0.15s; }
 .stagger-4 { animation-delay: 0.2s; }
 .stagger-5 { animation-delay: 0.25s; }
-
-/* Range input styling */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
-  width: 100%;
-}
-
-input[type="range"]::-webkit-slider-runnable-track {
-  background: var(--color-sand);
-  height: 6px;
-  border-radius: 3px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  margin-top: -7px;
-  background-color: var(--color-accent);
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  border: 3px solid white;
-  box-shadow: 0 0 0 1px var(--color-accent);
-}
-
-input[type="range"]::-moz-range-track {
-  background: var(--color-sand);
-  height: 6px;
-  border-radius: 3px;
-}
-
-input[type="range"]::-moz-range-thumb {
-  background-color: var(--color-accent);
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  border: 3px solid white;
-  box-shadow: 0 0 0 1px var(--color-accent);
-}

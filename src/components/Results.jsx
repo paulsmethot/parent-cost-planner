@@ -12,7 +12,7 @@ import {
   provinceName,
 } from '../lib/calculations'
 
-function fmtAbs(n) {
+function fmt(n) {
   return '$' + Math.abs(Math.round(n)).toLocaleString('en-CA')
 }
 
@@ -20,17 +20,14 @@ function Divider() {
   return <div className="border-t border-[var(--color-sand)]" />
 }
 
-function MetricCard({ label, value, valueColor, note, prefix = '', delay = 0 }) {
+function LineItem({ label, subtitle, value, valueColor }) {
   return (
-    <div
-      className="bg-white rounded-[16px] p-5 space-y-2 animate-fade-slide-up opacity-0"
-      style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
-    >
-      <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide leading-tight">{label}</p>
-      <p className={`text-2xl font-black leading-none ${valueColor}`}>
-        {prefix}{value}
-      </p>
-      {note && <p className="text-xs text-[var(--color-muted)] leading-relaxed">{note}</p>}
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-sm font-semibold text-[var(--color-charcoal)]">{label}</p>
+        {subtitle && <p className="text-xs text-[var(--color-muted)] mt-0.5">{subtitle}</p>}
+      </div>
+      <p className={`text-sm font-black shrink-0 ${valueColor}`}>{value}</p>
     </div>
   )
 }
@@ -46,7 +43,7 @@ function TimelineStep({ month, label, detail, index, isLast }) {
         {!isLast && <div className="w-px bg-[var(--color-sand)] flex-1 mt-1.5" />}
       </div>
       <div className={isLast ? 'pb-0' : 'pb-6'}>
-        <p className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-wide">{month}</p>
+        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">{month}</p>
         <p className="text-sm font-bold text-[var(--color-charcoal)] mt-0.5">{label}</p>
         <p className="text-xs text-[var(--color-muted)] mt-0.5 leading-relaxed">{detail}</p>
       </div>
@@ -54,14 +51,12 @@ function TimelineStep({ month, label, detail, index, isLast }) {
   )
 }
 
-// Interactive action item with checkbox + external link
 function ActionItem({ item, index, checked, onToggle }) {
   return (
     <div
       className="flex gap-3 bg-white rounded-[16px] p-5 animate-fade-slide-up opacity-0"
       style={{ animationDelay: `${480 + index * 60}ms`, animationFillMode: 'forwards' }}
     >
-      {/* Checkbox */}
       <button
         onClick={onToggle}
         className={`w-6 h-6 rounded-[6px] border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all duration-150 ${
@@ -78,14 +73,12 @@ function ActionItem({ item, index, checked, onToggle }) {
         )}
       </button>
 
-      {/* Text */}
       <p className={`flex-1 text-sm leading-relaxed transition-all duration-150 ${
         checked ? 'line-through text-[var(--color-stone)]' : 'text-[var(--color-charcoal)]'
       }`}>
         {item.text}
       </p>
 
-      {/* External link */}
       <a
         href={item.url}
         target="_blank"
@@ -105,7 +98,7 @@ function ActionItem({ item, index, checked, onToggle }) {
 export default function Results({ values, onEdit }) {
   const {
     province, householdIncome, caregiverIncome, leaveType,
-    babyDOB, isExpecting, additionalCosts = {}, employerTopUp = 0,
+    babyDOB, isExpecting, additionalCosts = [], employerTopUp = 0,
   } = values
 
   const isQC = province === 'QC'
@@ -120,61 +113,25 @@ export default function Results({ values, onEdit }) {
   const netImpact = calcNetMonthlyImpact(values)
   const netPositive = netImpact >= 0
 
+  const totalComingIn = onLeave ? leaveIncome + ccbMonthly : ccbMonthly
+  const totalGoingOut = childcareCost + additionalTotal
+
   const compactVerdict = buildCompactVerdict(values)
   const timeline = buildTimeline(babyDOB, isExpecting, leaveType, province)
   const actions = buildActionItems(province, null, isExpecting, householdIncome)
 
-  // Checkbox state — in-session only
   const [checked, setChecked] = useState({})
   function toggleCheck(i) {
     setChecked(prev => ({ ...prev, [i]: !prev[i] }))
   }
 
-  // ── CCB note ────────────────────────────────────────────────────────────────
-  const ccbNote = ccbMonthly === 0
-    ? 'Your household income exceeds the phase-out threshold (~$106K). CCB is $0 at this income.'
-    : 'Monthly, tax-free — deposited on the 20th of each month'
+  const ccbSubtitle = ccbMonthly < 50
+    ? 'Reduced at this income level — file taxes early to increase.'
+    : 'Tax-free, deposited on the 20th'
 
-  // ── Net note ────────────────────────────────────────────────────────────────
-  const netNoteBase = onLeave
-    ? 'EI − your salary + CCB − childcare − other costs'
-    : 'CCB − childcare − other costs vs. pre-baby'
-  const netNote = additionalTotal > 0
-    ? `${netNoteBase} (incl. $${additionalTotal.toLocaleString('en-CA')}/mo added costs)`
-    : netNoteBase
-
-  // ── Metric cards ────────────────────────────────────────────────────────────
-  const metrics = [
-    {
-      label: isQC ? 'Monthly income on leave (QPIP)' : 'Monthly income on leave',
-      value: onLeave ? fmtAbs(leaveIncome) : '—',
-      valueColor: onLeave ? 'text-[var(--color-positive)]' : 'text-[var(--color-stone)]',
-      note: onLeave
-        ? isQC ? 'QPIP estimate via Retraite Québec'
-          : hasTopUp ? 'EI + employer top-up'
-          : `${leaveType === 'extended' ? '33%' : '55%'} of insurable earnings`
-        : 'Leave window has passed for this baby',
-    },
-    {
-      label: 'Canada Child Benefit',
-      value: fmtAbs(ccbMonthly),
-      valueColor: ccbMonthly > 0 ? 'text-[var(--color-positive)]' : 'text-[var(--color-stone)]',
-      note: ccbNote,
-    },
-    {
-      label: 'Estimated childcare',
-      value: fmtAbs(childcareCost),
-      valueColor: 'text-[var(--color-negative)]',
-      note: isQC ? 'Subsidized CPE rate ($13.10/day)' : `${provinceName(province)} monthly average`,
-    },
-    {
-      label: 'Net monthly vs. today',
-      value: fmtAbs(netImpact),
-      prefix: netPositive ? '+' : '−',
-      valueColor: netPositive ? 'text-[var(--color-positive)]' : 'text-[var(--color-negative)]',
-      note: netNote,
-    },
-  ]
+  const eiSubtitle = hasTopUp
+    ? 'EI + employer top-up'
+    : `${leaveType === 'extended' ? '33%' : '55%'} of insurable earnings`
 
   return (
     <div className="space-y-10">
@@ -183,10 +140,10 @@ export default function Results({ values, onEdit }) {
       {isQC && (
         <div className="bg-[var(--color-positive-light)] border border-[var(--color-positive)] rounded-[12px] px-4 py-3 animate-fade-in">
           <p className="text-sm font-bold text-[var(--color-positive)]">
-            🍁 Quebec's QPIP applies to you
+            Quebec's QPIP applies to you
           </p>
           <p className="text-xs text-[var(--color-positive)] mt-0.5 opacity-80">
-            Your leave is administered by Retraite Québec, not Service Canada. Benefits are generally more generous.
+            Your leave is administered by Retraite Quebec, not Service Canada. Benefits are generally more generous.
           </p>
         </div>
       )}
@@ -195,28 +152,121 @@ export default function Results({ values, onEdit }) {
       <div className="animate-fade-slide-up opacity-0" style={{ animationFillMode: 'forwards' }}>
         <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-widest mb-2">Your results</p>
         <h1 className="text-3xl font-black text-[var(--color-charcoal)] leading-tight mb-3">
-          Here's your picture, {provinceName(province)}.
+          Your family's monthly picture, {provinceName(province)}, Canada.
         </h1>
         <p className="text-base text-[var(--color-muted)] leading-relaxed max-w-[680px]">
           {compactVerdict}
         </p>
       </div>
 
-      {/* Metric cards — 2×2 mobile, 4-across desktop */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {metrics.map((m, i) => (
-          <MetricCard key={m.label} {...m} delay={60 + i * 50} />
-        ))}
+      {/* Section 1 — What's coming in */}
+      <div
+        className="bg-white rounded-[16px] p-5 space-y-4 animate-fade-slide-up opacity-0"
+        style={{ animationDelay: '60ms', animationFillMode: 'forwards' }}
+      >
+        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
+          {onLeave ? "What's coming in during leave" : "What's coming in"}
+        </p>
+
+        <div className="space-y-3">
+          {onLeave && (
+            <LineItem
+              label={isQC ? 'QPIP parental leave' : 'EI parental leave'}
+              subtitle={eiSubtitle}
+              value={`+${fmt(leaveIncome)}/mo`}
+              valueColor="text-[#2D6A4F]"
+            />
+          )}
+          <LineItem
+            label="Canada Child Benefit"
+            subtitle={ccbSubtitle}
+            value={`+${fmt(ccbMonthly)}/mo`}
+            valueColor="text-[#2D6A4F]"
+          />
+        </div>
+
+        <div className="border-t border-[var(--color-sand)] pt-3 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-bold text-[var(--color-charcoal)]">Total coming in</p>
+            <p className="text-xs text-[var(--color-muted)] mt-0.5">
+              {onLeave ? 'Your total monthly income during leave' : 'Your total monthly income'}
+            </p>
+          </div>
+          <p className="text-xl font-black text-[#2D6A4F] shrink-0">+{fmt(totalComingIn)}/mo</p>
+        </div>
+
+        <p className="text-xs text-[var(--color-muted)] leading-relaxed border-t border-[var(--color-sand)] pt-3">
+          CCB is recalculated each July based on your prior year tax return. A lower income year during parental leave may increase your benefit next cycle.
+        </p>
       </div>
 
-      {additionalTotal > 0 && (
-        <div className="bg-[var(--color-warning-light)] border border-[var(--color-warning)] rounded-[12px] px-4 py-3 animate-fade-in">
-          <p className="text-xs font-bold text-[var(--color-warning)] uppercase tracking-wide mb-0.5">Additional costs factored in</p>
-          <p className="text-sm text-[var(--color-charcoal)]">
-            Your {fmtAbs(additionalTotal)}/month in additional costs is included in the net monthly figure above.
-          </p>
+      {/* Section 2 — What you'll need to cover */}
+      <div
+        className="bg-white rounded-[16px] p-5 space-y-4 animate-fade-slide-up opacity-0"
+        style={{ animationDelay: '120ms', animationFillMode: 'forwards' }}
+      >
+        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
+          What you'll need to cover
+        </p>
+
+        <div className="space-y-3">
+          <LineItem
+            label="Estimated childcare"
+            subtitle={isQC ? 'Subsidized CPE rate ($13.10/day)' : `${provinceName(province)} monthly average`}
+            value={`-${fmt(childcareCost)}/mo`}
+            valueColor="text-[#92400E]"
+          />
+          {additionalTotal > 0 && (
+            <LineItem
+              label="Additional costs"
+              subtitle="Based on what you told us"
+              value={`-${fmt(additionalTotal)}/mo`}
+              valueColor="text-[#92400E]"
+            />
+          )}
+          {onLeave && (
+            <LineItem
+              label="Your pre-leave monthly salary"
+              subtitle="The income parental leave replaces"
+              value={`-${fmt(caregiverIncome / 12)}/mo`}
+              valueColor="text-[#92400E]"
+            />
+          )}
         </div>
-      )}
+
+        <div className="border-t border-[var(--color-sand)] pt-3 flex items-start justify-between gap-4">
+          <p className="text-sm font-bold text-[var(--color-charcoal)]">Total going out</p>
+          <p className="text-xl font-black text-[#92400E] shrink-0">-{fmt(totalGoingOut + (onLeave ? caregiverIncome / 12 : 0))}/mo</p>
+        </div>
+      </div>
+
+      {/* Section 3 — Bottom line */}
+      <div
+        className="bg-[#F7F7F5] rounded-[16px] p-5 space-y-3 animate-fade-slide-up opacity-0"
+        style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}
+      >
+        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
+          {onLeave ? 'Your monthly leave gap' : 'Monthly difference'}
+        </p>
+        {onLeave && (
+          <div className="text-xs text-[var(--color-muted)] space-y-0.5">
+            <p>{fmt(totalComingIn)}/mo coming in</p>
+            <p>{fmt(totalGoingOut + caregiverIncome / 12)}/mo to cover</p>
+          </div>
+        )}
+        <p className={`text-3xl font-black leading-none ${netPositive ? 'text-[#2D6A4F]' : 'text-[#92400E]'}`}>
+          {netPositive ? '+' : '-'}{fmt(netImpact)}<span className="text-lg font-semibold opacity-60">/mo</span>
+        </p>
+        {netPositive ? (
+          <p className="text-xs font-semibold text-[#2D6A4F] leading-relaxed">
+            You are in a strong position heading into leave.
+          </p>
+        ) : (
+          <p className="text-xs text-[var(--color-muted)] leading-relaxed">
+            This gap is normal. Most families bridge it with savings built before leave, or by adjusting spending during the leave period.
+          </p>
+        )}
+      </div>
 
       <Divider />
 
@@ -232,7 +282,7 @@ export default function Results({ values, onEdit }) {
 
       <Divider />
 
-      {/* Do these first — interactive checklist */}
+      {/* Do these first */}
       <div>
         <h2 className="text-xl font-black text-[var(--color-charcoal)] mb-1">Do these first</h2>
         <p className="text-sm text-[var(--color-muted)] mb-4">

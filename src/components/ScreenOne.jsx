@@ -15,7 +15,6 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
   const { province, isExpecting, babyDOB } = values
 
   const today = new Date().toISOString().split('T')[0]
-  // Max due date ~10 months out; min DOB ~6 years back
   const minDOB = new Date(new Date().setFullYear(new Date().getFullYear() - 6)).toISOString().split('T')[0]
   const maxDue = new Date(new Date().setMonth(new Date().getMonth() + 10)).toISOString().split('T')[0]
 
@@ -23,7 +22,7 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
 
   function handleToggle(expecting) {
     onChange('isExpecting', expecting)
-    onChange('babyDOB', '') // clear date when switching mode
+    onChange('babyDOB', '')
   }
 
   return (
@@ -32,7 +31,7 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
       {/* Province */}
       <div className="space-y-3">
         <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
-          Where are you raising your family?
+          Where in Canada are you raising your family? <span className="text-[var(--color-negative)]">*</span>
         </h2>
         <div className="relative">
           <select
@@ -60,63 +59,65 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
         </div>
       </div>
 
-      {/* Baby status toggle + date picker */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
-          {isExpecting ? 'When is your baby due?' : 'When was your baby born?'}
-        </h2>
+      {/* Baby status — fades in after province selected */}
+      {province && (
+        <div className="space-y-4 screen-enter">
+          <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
+            {isExpecting ? 'When is your baby due?' : 'When was your baby born?'} <span className="text-[var(--color-negative)]">*</span>
+          </h2>
 
-        {/* Toggle */}
-        <div className="flex bg-white border border-[var(--color-sand)] rounded-[12px] p-1 gap-1">
-          <button
-            onClick={() => handleToggle(false)}
-            className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
-              !isExpecting
-                ? 'bg-[var(--color-accent)] text-white'
-                : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
-            }`}
-          >
-            My baby is already born
-          </button>
-          <button
-            onClick={() => handleToggle(true)}
-            className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
-              isExpecting
-                ? 'bg-[var(--color-accent)] text-white'
-                : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
-            }`}
-          >
-            I'm expecting
-          </button>
-        </div>
+          {/* Toggle */}
+          <div className="flex bg-white border border-[var(--color-sand)] rounded-[12px] p-1 gap-1">
+            <button
+              onClick={() => handleToggle(false)}
+              className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
+                !isExpecting
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
+              }`}
+            >
+              My baby is already born
+            </button>
+            <button
+              onClick={() => handleToggle(true)}
+              className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
+                isExpecting
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
+              }`}
+            >
+              I'm expecting
+            </button>
+          </div>
 
-        {/* Date input */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
-            {isExpecting ? 'Due date' : 'Date of birth'}
-          </label>
-          <input
-            type="date"
-            value={babyDOB}
-            min={isExpecting ? today : minDOB}
-            max={isExpecting ? maxDue : today}
-            onChange={(e) => onChange('babyDOB', e.target.value)}
-            className={`
-              w-full bg-white border rounded-[12px] px-4 py-4 text-base font-semibold
-              focus:outline-none transition-colors duration-150 cursor-pointer
-              ${babyDOB
-                ? 'border-[var(--color-accent)] text-[var(--color-charcoal)]'
-                : 'border-[var(--color-sand)] text-[var(--color-stone)]'
-              }
-            `}
-          />
-          {isExpecting && (
-            <p className="text-xs text-[var(--color-muted)]">
-              We'll anchor your timeline and leave window to this date.
-            </p>
-          )}
+          {/* Date input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
+              {isExpecting ? 'Due date' : 'Date of birth'}
+            </label>
+            <input
+              type="date"
+              value={babyDOB}
+              min={isExpecting ? today : minDOB}
+              max={isExpecting ? maxDue : today}
+              onChange={(e) => onChange('babyDOB', e.target.value)}
+              className={`
+                w-full bg-white border rounded-[12px] px-4 py-4 text-base font-semibold
+                focus:outline-none transition-colors duration-150 cursor-pointer
+                ${babyDOB
+                  ? 'border-[var(--color-accent)] text-[var(--color-charcoal)]'
+                  : 'border-[var(--color-sand)] text-[var(--color-stone)]'
+                }
+              `}
+            />
+            {isExpecting && (
+              <p className="text-xs text-[var(--color-muted)]">
+                We'll anchor your timeline and leave window to this date.
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Nav */}
       <div className="flex gap-3">
@@ -132,7 +133,7 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
           className={`
             flex-1 py-4 rounded-[20px] font-bold text-base transition-all duration-200
             ${canContinue
-              ? 'bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)] active:scale-[0.98]'
+              ? 'bg-[var(--color-accent)] text-white hover:opacity-80 active:scale-[0.98]'
               : 'bg-[var(--color-sand)] text-[var(--color-stone)] cursor-not-allowed'
             }
           `}
