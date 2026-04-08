@@ -23,7 +23,7 @@ export function calcLeaveMonths(leaveType) {
 // ─── Age and leave window helpers ─────────────────────────────────────────────
 
 // Returns baby's age in months (negative = weeks until due date)
-export function getBabyAgeMonths(babyDOB, isExpecting) {
+export function getBabyAgeMonths(babyDOB) {
   if (!babyDOB) return null
   const anchor = new Date(babyDOB + 'T12:00:00') // noon to avoid timezone drift
   const now = new Date()
@@ -107,10 +107,11 @@ export function calcIncomeDropMonthly(caregiverIncome, leaveType) {
 
 export function calcNetMonthlyImpact(inputs) {
   const {
-    caregiverIncome, householdIncome, province, leaveType,
+    caregiverIncome, partnerIncome = 0, province, leaveType,
     babyDOB, isExpecting, additionalCosts = [], employerTopUp = 0,
   } = inputs
 
+  const householdIncome = (caregiverIncome || 0) + (partnerIncome || 0)
   const ccbMonthly = calcCCBMonthly(householdIncome)
   const childcare = calcChildcareCost(province)
   const additionalTotal = calcAdditionalCostsTotal(additionalCosts)
@@ -254,7 +255,7 @@ const ACTION_URLS = {
   childcare: 'https://www.canada.ca/en/public-health/services/caring-for-kids/child-care.html',
 }
 
-export function buildActionItems(province, ageMonths, isExpecting, householdIncome) {
+export function buildActionItems(province, _ageMonths, _isExpecting, householdIncome) {
   const isQC = province === 'QC'
   const needsCLB = householdIncome < 45000
 
@@ -296,7 +297,8 @@ export function provinceName(code) {
 // ─── Compact verdict (results header subtitle) ────────────────────────────────
 
 export function buildCompactVerdict(inputs) {
-  const { province, householdIncome, caregiverIncome, leaveType, babyDOB, isExpecting, employerTopUp = 0 } = inputs
+  const { province, caregiverIncome, partnerIncome = 0, leaveType, babyDOB, isExpecting, employerTopUp = 0, needsChildcare = false } = inputs
+  const householdIncome = (caregiverIncome || 0) + (partnerIncome || 0)
   const isQC = province === 'QC'
   const eiMonthly = calcEIMonthly(caregiverIncome, leaveType)
   const ccbMonthly = calcCCBMonthly(householdIncome)
@@ -308,9 +310,15 @@ export function buildCompactVerdict(inputs) {
   const totalComingIn = onLeave ? (hasTopUp ? eiMonthly + employerTopUp : eiMonthly) + ccbMonthly : ccbMonthly
 
   if (isQC) {
+    if (onLeave && !needsChildcare) {
+      return `During leave, you will bring in ${fmt(totalComingIn)}/month between QPIP and CCB. Since you'll be home with your baby, subsidized childcare costs apply when you return.`
+    }
     return `During leave, you will bring in ${fmt(totalComingIn)}/month between QPIP and CCB. Your biggest monthly cost is subsidized childcare at $430/month. Here is what to prepare for.`
   }
   if (onLeave) {
+    if (!needsChildcare) {
+      return `During leave, you will bring in ${fmt(totalComingIn)}/month between EI and CCB. Since you'll be home with your baby, paid childcare isn't factored in yet.`
+    }
     return `During leave, you will bring in ${fmt(totalComingIn)}/month between EI and CCB. Your biggest monthly cost is childcare at ${fmt(childcare)}/month. Here is what to prepare for.`
   }
   return `Your CCB is worth ${fmt(ccbMonthly)}/month tax-free, and childcare in ${provinceName(province)} runs about ${fmt(childcare)}/month.`

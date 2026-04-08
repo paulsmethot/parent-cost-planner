@@ -77,9 +77,23 @@ export default function Intro({ onStart }) {
           </button>
 
           {/* Footer note */}
-          <p className="text-xs text-[var(--color-stone)] text-center">
-            Made for Canadian parents, by a Canadian parent.
-          </p>
+          <div className="text-xs text-[var(--color-stone)] text-center">
+            <p>
+              Made for Canadian parents, by Leon&apos;s dad,{' '}
+              <a
+                href="https://www.linkedin.com/in/paulmethot"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-0.5 underline decoration-[var(--color-stone)] underline-offset-2"
+              >
+                <span>Paul Methot</span>
+                <span className="text-[12px]" aria-hidden="true">
+                  ↗
+                </span>
+              </a>
+              .
+            </p>
+          </div>
         </div>
       </div>
     </div>

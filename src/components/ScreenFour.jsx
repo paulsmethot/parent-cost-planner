@@ -24,7 +24,7 @@ const LEAVE_TYPES = [
 ]
 
 export default function ScreenFour({ values, onChange, onBack, onNext }) {
-  const { leaveType, employerTopUp } = values
+  const { leaveType, employerTopUp, needsChildcare } = values
   const [topUpDisplay, setTopUpDisplay] = useState(
     employerTopUp > 0 ? employerTopUp.toLocaleString('en-CA') : ''
   )
@@ -113,6 +113,40 @@ export default function ScreenFour({ values, onChange, onBack, onNext }) {
           </div>
         </div>
       )}
+
+      {/* Childcare during leave toggle */}
+      <div className="space-y-3">
+        <div>
+          <p className="text-sm font-bold text-[var(--color-charcoal)]">
+            Will you need paid childcare during your leave?
+          </p>
+          <p className="text-xs text-[var(--color-muted)] mt-0.5 leading-relaxed">
+            Many parents on full leave care for their child at home and don't need paid childcare yet.
+          </p>
+        </div>
+        <div className="flex bg-white border border-[var(--color-sand)] rounded-[12px] p-1 gap-1">
+          <button
+            onClick={() => onChange('needsChildcare', false)}
+            className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
+              !needsChildcare
+                ? 'bg-[var(--color-accent)] text-white'
+                : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
+            }`}
+          >
+            No, I'll be home
+          </button>
+          <button
+            onClick={() => onChange('needsChildcare', true)}
+            className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
+              needsChildcare
+                ? 'bg-[var(--color-accent)] text-white'
+                : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
+            }`}
+          >
+            Yes, we need it
+          </button>
+        </div>
+      </div>
 
       <div className="flex gap-3">
         <button

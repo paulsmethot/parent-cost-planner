@@ -2,21 +2,21 @@ import { useState } from 'react'
 import Intro from './components/Intro'
 import ScreenOne from './components/ScreenOne'
 import ScreenTwo from './components/ScreenTwo'
-import ScreenThree from './components/ScreenThree'
 import ScreenFour from './components/ScreenFour'
 import ScreenFive from './components/ScreenFive'
 import Results from './components/Results'
 
-const TOTAL_STEPS = 5
+const TOTAL_STEPS = 4
 
 const INITIAL_VALUES = {
   province: '',
   isExpecting: false,
   babyDOB: '',
-  householdIncome: 0,
   caregiverIncome: 0,
+  partnerIncome: 0,
   leaveType: 'standard',
   employerTopUp: 0,
+  needsChildcare: false,
   additionalCosts: [
     { id: 'food', label: 'Baby food & formula', desc: 'Typically $100 to $300/month in year one', amount: 0 },
     { id: 'diapers', label: 'Diapers & wipes', desc: 'Typically $80 to $150/month', amount: 0 },
@@ -54,7 +54,6 @@ export default function App() {
     setValues((prev) => ({ ...prev, [key]: val }))
   }
 
-  // ScreenFive sends the full costs array when navigating forward
   function handleCostChange(newCosts) {
     setValues((prev) => ({ ...prev, additionalCosts: newCosts }))
   }
@@ -74,12 +73,13 @@ export default function App() {
         {/* Screen 0 — Intro */}
         {step === 0 && <Intro onStart={() => setStep(1)} />}
 
-        {/* Screens 1–5 — Intake */}
+        {/* Screens 1–4 — Intake */}
         {isIntake && (
           <div className="min-h-screen flex flex-col">
             <div className="w-full max-w-[640px] mx-auto px-6 py-12 flex-1">
               <StepIndicator step={step} />
 
+              {/* Step 1 — Province + baby date */}
               {step === 1 && (
                 <ScreenOne
                   values={values}
@@ -88,6 +88,8 @@ export default function App() {
                   onNext={nav.onNext}
                 />
               )}
+
+              {/* Step 2 — Combined income */}
               {step === 2 && (
                 <ScreenTwo
                   values={values}
@@ -96,15 +98,9 @@ export default function App() {
                   onNext={nav.onNext}
                 />
               )}
+
+              {/* Step 3 — Leave type */}
               {step === 3 && (
-                <ScreenThree
-                  values={values}
-                  onChange={handleChange}
-                  onBack={nav.onBack}
-                  onNext={nav.onNext}
-                />
-              )}
-              {step === 4 && (
                 <ScreenFour
                   values={values}
                   onChange={handleChange}
@@ -112,7 +108,9 @@ export default function App() {
                   onNext={nav.onNext}
                 />
               )}
-              {step === 5 && (
+
+              {/* Step 4 — Additional costs */}
+              {step === 4 && (
                 <ScreenFive
                   values={values}
                   onCostChange={handleCostChange}
@@ -124,7 +122,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Screen 6 — Results */}
+        {/* Results */}
         {isResults && (
           <div className="w-full max-w-[1100px] mx-auto px-6 py-12">
             <Results values={values} onEdit={() => setStep(1)} />

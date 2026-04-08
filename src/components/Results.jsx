@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   calcEIMonthly,
   calcCCBMonthly,
   calcChildcareCost,
   calcAdditionalCostsTotal,
-  calcNetMonthlyImpact,
+  calcLeaveMonths,
   isLeaveActive,
   buildTimeline,
   buildActionItems,
@@ -16,18 +16,31 @@ function fmt(n) {
   return '$' + Math.abs(Math.round(n)).toLocaleString('en-CA')
 }
 
+function Mo() {
+  return <span>/mo</span>
+}
+
 function Divider() {
-  return <div className="border-t border-[var(--color-sand)]" />
+  return <div className="border-t border-[var(--color-sand)] print:border-gray-200" />
+}
+
+function ItemDivider() {
+  return <div className="border-t border-[#F0F0EE]" />
+}
+
+// All section headings: 18px / 600 / charcoal
+function SectionHeading({ children }) {
+  return <h2 className="text-[18px] font-semibold text-[#1A1A1A]">{children}</h2>
 }
 
 function LineItem({ label, subtitle, value, valueColor }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className="text-sm font-semibold text-[var(--color-charcoal)]">{label}</p>
-        {subtitle && <p className="text-xs text-[var(--color-muted)] mt-0.5">{subtitle}</p>}
+        <p className="text-[15px] font-medium text-[var(--color-charcoal)] leading-snug">{label}</p>
+        {subtitle && <p className="text-[13px] font-normal text-[#6B6B6B] mt-0.5 leading-relaxed">{subtitle}</p>}
       </div>
-      <p className={`text-sm font-black shrink-0 ${valueColor}`}>{value}</p>
+      <p className={`text-[15px] font-semibold shrink-0 leading-snug ${valueColor}`}>{value}</p>
     </div>
   )
 }
@@ -43,9 +56,9 @@ function TimelineStep({ month, label, detail, index, isLast }) {
         {!isLast && <div className="w-px bg-[var(--color-sand)] flex-1 mt-1.5" />}
       </div>
       <div className={isLast ? 'pb-0' : 'pb-6'}>
-        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">{month}</p>
-        <p className="text-sm font-bold text-[var(--color-charcoal)] mt-0.5">{label}</p>
-        <p className="text-xs text-[var(--color-muted)] mt-0.5 leading-relaxed">{detail}</p>
+        <p className="text-[11px] font-semibold text-[var(--color-muted)] uppercase tracking-[0.06em]">{month}</p>
+        <p className="text-[15px] font-semibold text-[var(--color-charcoal)] mt-0.5 leading-snug">{label}</p>
+        <p className="text-[13px] font-normal text-[var(--color-muted)] mt-0.5 leading-relaxed">{detail}</p>
       </div>
     </div>
   )
@@ -72,13 +85,11 @@ function ActionItem({ item, index, checked, onToggle }) {
           </svg>
         )}
       </button>
-
-      <p className={`flex-1 text-sm leading-relaxed transition-all duration-150 ${
+      <p className={`flex-1 text-[14px] font-normal leading-relaxed transition-all duration-150 ${
         checked ? 'line-through text-[var(--color-stone)]' : 'text-[var(--color-charcoal)]'
       }`}>
         {item.text}
       </p>
-
       <a
         href={item.url}
         target="_blank"
@@ -95,11 +106,150 @@ function ActionItem({ item, index, checked, onToggle }) {
   )
 }
 
+// ─── CSV helpers ──────────────────────────────────────────────────────────────
+
+function triggerCSVDownload(csvString, filename) {
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function buildCSVString({ province, leaveType, eiMonthly, ccbMonthly, childcareCost,
+  caregiverIncome, additionalTotal, adjustedNet, needsChildcare, onLeave,
+  leaveIncome, returnMonthYear }) {
+  const totalComingIn = onLeave ? leaveIncome + ccbMonthly : ccbMonthly
+  const salaryMonthly = Math.round(caregiverIncome / 12)
+  const activeChildcare = needsChildcare ? Math.round(childcareCost) : 0
+  const totalGoingOut = activeChildcare + Math.round(additionalTotal) + (onLeave ? salaryMonthly : 0)
+  const leaveLabel = leaveType === 'extended' ? 'Extended 18-month'
+    : leaveType === 'shared' ? 'Shared'
+    : leaveType === 'topup' ? 'Employer Top-up'
+    : 'Standard 12-month'
+  const today = new Date().toISOString().split('T')[0]
+  const childcareEntry = needsChildcare
+    ? Math.round(childcareCost)
+    : returnMonthYear ? `Starting ${returnMonthYear}` : 'TBD'
+
+  const rows = [
+    ['"Monthly Income During Leave"'],
+    ['"Category"', '"Amount (CAD/mo)"'],
+  ]
+  if (onLeave) rows.push(['"EI Parental Leave"', `"${Math.round(eiMonthly)}"`])
+  rows.push(['"Canada Child Benefit"', `"${Math.round(ccbMonthly)}"`])
+  rows.push(['"Total Coming In"', `"${Math.round(totalComingIn)}"`])
+  rows.push([''])
+  rows.push(['"Monthly Costs During Leave"'])
+  rows.push(['"Category"', '"Amount (CAD/mo)"'])
+  rows.push(['"Estimated Childcare"', `"${childcareEntry}"`])
+  if (onLeave) rows.push(['"Pre-leave Monthly Salary"', `"${salaryMonthly}"`])
+  rows.push(['"Additional Monthly Costs"', `"${Math.round(additionalTotal)}"`])
+  rows.push(['"Total Going Out"', `"${totalGoingOut}"`])
+  rows.push([''])
+  rows.push(['"Summary"'])
+  rows.push(['"Monthly Income Gap"', `"${adjustedNet}"`])
+  rows.push(['"Leave Type"', `"${leaveLabel}"`])
+  rows.push(['"Province"', `"${provinceName(province)}"`])
+  rows.push(['"Generated On"', `"${today}"`])
+
+  return rows.map(r => r.join(',')).join('\n')
+}
+
+// ─── Export dropdown ──────────────────────────────────────────────────────────
+
+function ExportDropdown({ csvParams, province }) {
+  const [open, setOpen] = useState(false)
+  const [sheetsNote, setSheetsNote] = useState(false)
+  const wrapperRef = useRef(null)
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false)
+    }
+    if (open) document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [open])
+
+  const now = new Date()
+  const yyyymm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const filename = `parent-cost-planner-${province.toLowerCase()}-${yyyymm}.csv`
+
+  function handlePDF() { setOpen(false); window.print() }
+  function handleCSV() { setOpen(false); triggerCSVDownload(buildCSVString(csvParams), filename) }
+  function handleSheets() {
+    setOpen(false)
+    triggerCSVDownload(buildCSVString(csvParams), filename)
+    window.open('https://docs.google.com/spreadsheets/d/create', '_blank', 'noopener,noreferrer')
+    setSheetsNote(true)
+    setTimeout(() => setSheetsNote(false), 4000)
+  }
+
+  return (
+    <div ref={wrapperRef} className="relative flex-1 print:hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full h-12 rounded-[12px] font-medium text-[15px] border border-[#E5E5E3] text-[#1A1A1A] bg-white hover:bg-[#F7F7F5] transition-all duration-200 flex items-center justify-center gap-2"
+      >
+        Export results
+        <svg
+          width="14" height="14" viewBox="0 0 14 14" fill="none"
+          className={`transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+        >
+          <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-[#E5E5E3] rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.10)] overflow-hidden z-10">
+          <button onClick={handlePDF} className="w-full h-11 px-4 flex items-center gap-3 text-sm font-semibold text-[#1A1A1A] hover:bg-[#F7F7F5] transition-colors duration-150 text-left">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Save as PDF
+          </button>
+          <div className="border-t border-[#E5E5E3]" />
+          <button onClick={handleCSV} className="w-full h-11 px-4 flex items-center gap-3 text-sm font-semibold text-[#1A1A1A] hover:bg-[#F7F7F5] transition-colors duration-150 text-left">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M1 5h12M1 9h12M5 5v7M9 5v7" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+            Download CSV
+          </button>
+          <div className="border-t border-[#E5E5E3]" />
+          <button onClick={handleSheets} className="w-full h-11 px-4 flex items-center gap-3 text-sm font-semibold text-[#1A1A1A] hover:bg-[#F7F7F5] transition-colors duration-150 text-left">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M6 2H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M9 1h4v4M13 1L7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Open in Google Sheets
+          </button>
+        </div>
+      )}
+
+      {sheetsNote && (
+        <p className="text-[13px] text-[var(--color-muted)] text-center mt-2 animate-fade-in">
+          A CSV file has been downloaded. Import it into your new Sheet via File &gt; Import.
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ─── Results screen ───────────────────────────────────────────────────────────
+
 export default function Results({ values, onEdit }) {
   const {
-    province, householdIncome, caregiverIncome, leaveType,
+    province, caregiverIncome, partnerIncome = 0, leaveType,
     babyDOB, isExpecting, additionalCosts = [], employerTopUp = 0,
+    needsChildcare = false,
   } = values
+
+  const householdIncome = (caregiverIncome || 0) + (partnerIncome || 0)
 
   const isQC = province === 'QC'
   const hasTopUp = leaveType === 'topup' && employerTopUp > 0
@@ -110,13 +260,28 @@ export default function Results({ values, onEdit }) {
   const ccbMonthly = calcCCBMonthly(householdIncome)
   const childcareCost = calcChildcareCost(province)
   const additionalTotal = calcAdditionalCostsTotal(additionalCosts)
-  const netImpact = calcNetMonthlyImpact(values)
-  const netPositive = netImpact >= 0
+
+  const activeChildcare = needsChildcare ? childcareCost : 0
+  const adjustedNet = onLeave
+    ? Math.round(leaveIncome - (caregiverIncome / 12) + ccbMonthly - activeChildcare - additionalTotal)
+    : Math.round(ccbMonthly - activeChildcare - additionalTotal)
+  const netPositive = adjustedNet >= 0
 
   const totalComingIn = onLeave ? leaveIncome + ccbMonthly : ccbMonthly
-  const totalGoingOut = childcareCost + additionalTotal
+  const totalGoingOut = activeChildcare + additionalTotal
+
+  const returnMonthYear = babyDOB ? (() => {
+    const d = new Date(babyDOB + 'T12:00:00')
+    d.setMonth(d.getMonth() + calcLeaveMonths(leaveType))
+    return d.toLocaleDateString('en-CA', { month: 'long', year: 'numeric' })
+  })() : null
 
   const compactVerdict = buildCompactVerdict(values)
+  // Show only the first sentence — one confident statement
+  const firstSentence = compactVerdict.includes('. ')
+    ? compactVerdict.split('. ')[0] + '.'
+    : compactVerdict
+
   const timeline = buildTimeline(babyDOB, isExpecting, leaveType, province)
   const actions = buildActionItems(province, null, isExpecting, householdIncome)
 
@@ -133,16 +298,20 @@ export default function Results({ values, onEdit }) {
     ? 'EI + employer top-up'
     : `${leaveType === 'extended' ? '33%' : '55%'} of insurable earnings`
 
+  const csvParams = {
+    province, leaveType, eiMonthly, ccbMonthly, childcareCost,
+    caregiverIncome, additionalTotal, adjustedNet, needsChildcare,
+    onLeave, leaveIncome, returnMonthYear,
+  }
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
 
       {/* QC flag */}
       {isQC && (
         <div className="bg-[var(--color-positive-light)] border border-[var(--color-positive)] rounded-[12px] px-4 py-3 animate-fade-in">
-          <p className="text-sm font-bold text-[var(--color-positive)]">
-            Quebec's QPIP applies to you
-          </p>
-          <p className="text-xs text-[var(--color-positive)] mt-0.5 opacity-80">
+          <p className="text-[15px] font-semibold text-[var(--color-positive)]">Quebec's QPIP applies to you</p>
+          <p className="text-[13px] text-[var(--color-positive)] mt-0.5 opacity-80 leading-relaxed">
             Your leave is administered by Retraite Quebec, not Service Canada. Benefits are generally more generous.
           </p>
         </div>
@@ -155,125 +324,165 @@ export default function Results({ values, onEdit }) {
           Your family's monthly picture, {provinceName(province)}, Canada.
         </h1>
         <p className="text-base text-[var(--color-muted)] leading-relaxed max-w-[680px]">
-          {compactVerdict}
+          {firstSentence}
         </p>
       </div>
 
-      {/* Section 1 — What's coming in */}
-      <div
-        className="bg-white rounded-[16px] p-5 space-y-4 animate-fade-slide-up opacity-0"
-        style={{ animationDelay: '60ms', animationFillMode: 'forwards' }}
-      >
-        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
-          {onLeave ? "What's coming in during leave" : "What's coming in"}
-        </p>
+      {/* ── Financial statement — three cards grouped at 16px ── */}
+      <div className="space-y-4">
 
-        <div className="space-y-3">
-          {onLeave && (
+        {/* Monthly income during leave */}
+        <div
+          className="bg-white rounded-[16px] p-5 space-y-4 animate-fade-slide-up opacity-0"
+          style={{ animationDelay: '60ms', animationFillMode: 'forwards' }}
+        >
+          <SectionHeading>
+            {onLeave ? 'Monthly income during leave' : 'Monthly income'}
+          </SectionHeading>
+
+          {/* Line items with thin dividers between them */}
+          <div className="space-y-3">
+            {onLeave && (
+              <>
+                <LineItem
+                  label={isQC ? 'QPIP parental leave' : 'EI parental leave'}
+                  subtitle={eiSubtitle}
+                  value={<>+{fmt(leaveIncome)}<Mo /></>}
+                  valueColor="text-[#2D6A4F]"
+                />
+                <ItemDivider />
+              </>
+            )}
             <LineItem
-              label={isQC ? 'QPIP parental leave' : 'EI parental leave'}
-              subtitle={eiSubtitle}
-              value={`+${fmt(leaveIncome)}/mo`}
+              label="Canada Child Benefit"
+              subtitle={ccbSubtitle}
+              value={<>+{fmt(ccbMonthly)}<Mo /></>}
               valueColor="text-[#2D6A4F]"
             />
-          )}
-          <LineItem
-            label="Canada Child Benefit"
-            subtitle={ccbSubtitle}
-            value={`+${fmt(ccbMonthly)}/mo`}
-            valueColor="text-[#2D6A4F]"
-          />
-        </div>
+          </div>
 
-        <div className="border-t border-[var(--color-sand)] pt-3 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-bold text-[var(--color-charcoal)]">Total coming in</p>
-            <p className="text-xs text-[var(--color-muted)] mt-0.5">
-              {onLeave ? 'Your total monthly income during leave' : 'Your total monthly income'}
+          {/* CCB footnote — grounded inside the section */}
+          <div className="flex gap-2.5 bg-[#F7F7F5] rounded-[8px] px-[14px] py-[10px]">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0 mt-0.5">
+              <circle cx="7" cy="7" r="6" stroke="#6B6B6B" strokeWidth="1.5"/>
+              <path d="M7 6.5v3.5" stroke="#6B6B6B" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="7" cy="4.5" r="0.75" fill="#6B6B6B"/>
+            </svg>
+            <p className="text-[13px] font-normal text-[#6B6B6B] leading-relaxed">
+              CCB updates each July from your prior year tax return. A lower-income leave year may increase your benefit next cycle.
             </p>
           </div>
-          <p className="text-xl font-black text-[#2D6A4F] shrink-0">+{fmt(totalComingIn)}/mo</p>
-        </div>
 
-        <p className="text-xs text-[var(--color-muted)] leading-relaxed border-t border-[var(--color-sand)] pt-3">
-          CCB is recalculated each July based on your prior year tax return. A lower income year during parental leave may increase your benefit next cycle.
-        </p>
-      </div>
-
-      {/* Section 2 — What you'll need to cover */}
-      <div
-        className="bg-white rounded-[16px] p-5 space-y-4 animate-fade-slide-up opacity-0"
-        style={{ animationDelay: '120ms', animationFillMode: 'forwards' }}
-      >
-        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
-          What you'll need to cover
-        </p>
-
-        <div className="space-y-3">
-          <LineItem
-            label="Estimated childcare"
-            subtitle={isQC ? 'Subsidized CPE rate ($13.10/day)' : `${provinceName(province)} monthly average`}
-            value={`-${fmt(childcareCost)}/mo`}
-            valueColor="text-[#92400E]"
-          />
-          {additionalTotal > 0 && (
-            <LineItem
-              label="Additional costs"
-              subtitle="Based on what you told us"
-              value={`-${fmt(additionalTotal)}/mo`}
-              valueColor="text-[#92400E]"
-            />
-          )}
-          {onLeave && (
-            <LineItem
-              label="Your pre-leave monthly salary"
-              subtitle="The income parental leave replaces"
-              value={`-${fmt(caregiverIncome / 12)}/mo`}
-              valueColor="text-[#92400E]"
-            />
-          )}
-        </div>
-
-        <div className="border-t border-[var(--color-sand)] pt-3 flex items-start justify-between gap-4">
-          <p className="text-sm font-bold text-[var(--color-charcoal)]">Total going out</p>
-          <p className="text-xl font-black text-[#92400E] shrink-0">-{fmt(totalGoingOut + (onLeave ? caregiverIncome / 12 : 0))}/mo</p>
-        </div>
-      </div>
-
-      {/* Section 3 — Bottom line */}
-      <div
-        className="bg-[#F7F7F5] rounded-[16px] p-5 space-y-3 animate-fade-slide-up opacity-0"
-        style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}
-      >
-        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
-          {onLeave ? 'Your monthly leave gap' : 'Monthly difference'}
-        </p>
-        {onLeave && (
-          <div className="text-xs text-[var(--color-muted)] space-y-0.5">
-            <p>{fmt(totalComingIn)}/mo coming in</p>
-            <p>{fmt(totalGoingOut + caregiverIncome / 12)}/mo to cover</p>
+          {/* Section total */}
+          <div className="border-t border-[var(--color-sand)] pt-3 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[15px] font-medium text-[var(--color-charcoal)] leading-snug">Total coming in</p>
+              <p className="text-[13px] text-[#6B6B6B] mt-0.5">
+                {onLeave ? 'Your total monthly income during leave' : 'Your total monthly income'}
+              </p>
+            </div>
+            <p className="text-[17px] font-bold text-[#2D6A4F] shrink-0">+{fmt(totalComingIn)}<Mo /></p>
           </div>
-        )}
-        <p className={`text-3xl font-black leading-none ${netPositive ? 'text-[#2D6A4F]' : 'text-[#92400E]'}`}>
-          {netPositive ? '+' : '-'}{fmt(netImpact)}<span className="text-lg font-semibold opacity-60">/mo</span>
-        </p>
-        {netPositive ? (
-          <p className="text-xs font-semibold text-[#2D6A4F] leading-relaxed">
-            You are in a strong position heading into leave.
+        </div>
+
+        {/* Monthly costs during leave */}
+        <div
+          className="bg-white rounded-[16px] p-5 space-y-4 animate-fade-slide-up opacity-0"
+          style={{ animationDelay: '120ms', animationFillMode: 'forwards' }}
+        >
+          <SectionHeading>Monthly costs during leave</SectionHeading>
+
+          {/* Line items with thin dividers between them */}
+          <div className="space-y-3">
+            {/* Childcare — active or future */}
+            {needsChildcare ? (
+              <LineItem
+                label="Estimated childcare"
+                subtitle={isQC ? 'Subsidized CPE rate ($13.10/day)' : `${provinceName(province)} monthly average`}
+                value={<>-{fmt(childcareCost)}<Mo /></>}
+                valueColor="text-[#92400E]"
+              />
+            ) : (
+              <div className="opacity-50 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[15px] font-medium text-[var(--color-charcoal)] leading-snug">Estimated childcare</p>
+                  <p className="text-[13px] text-[#6B6B6B] mt-0.5 leading-relaxed">Not included in your current gap calculation</p>
+                </div>
+                <span className="shrink-0 text-[12px] font-medium text-[#6B6B6B] bg-[#F0F0EE] rounded-[20px] px-[10px] py-1 whitespace-nowrap">
+                  {returnMonthYear ? `From ${returnMonthYear}` : 'Future cost'}
+                </span>
+              </div>
+            )}
+
+            {additionalTotal > 0 && (
+              <>
+                <ItemDivider />
+                <LineItem
+                  label="Additional costs"
+                  subtitle="Based on what you told us"
+                  value={<>-{fmt(additionalTotal)}<Mo /></>}
+                  valueColor="text-[#92400E]"
+                />
+              </>
+            )}
+
+            {onLeave && (
+              <>
+                <ItemDivider />
+                <LineItem
+                  label="Your pre-leave monthly salary"
+                  subtitle="The income parental leave replaces"
+                  value={<>-{fmt(caregiverIncome / 12)}<Mo /></>}
+                  valueColor="text-[#92400E]"
+                />
+              </>
+            )}
+          </div>
+
+          {/* Section total */}
+          <div className="border-t border-[var(--color-sand)] pt-3 flex items-start justify-between gap-4">
+            <p className="text-[15px] font-medium text-[var(--color-charcoal)] leading-snug">Total going out</p>
+            <p className="text-[17px] font-bold text-[#92400E] shrink-0">
+              -{fmt(totalGoingOut + (onLeave ? caregiverIncome / 12 : 0))}<Mo />
+            </p>
+          </div>
+        </div>
+
+        {/* Monthly income gap */}
+        <div
+          className="bg-[#F7F7F5] border border-[#E5E5E3] rounded-[12px] p-5 space-y-3 animate-fade-slide-up opacity-0"
+          style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}
+        >
+          <SectionHeading>Monthly income gap</SectionHeading>
+          {onLeave && (
+            <div className="text-[14px] font-normal text-[var(--color-muted)] space-y-0.5">
+              <p>{fmt(totalComingIn)}/mo coming in</p>
+              <p>{fmt(totalGoingOut + caregiverIncome / 12)}/mo to cover</p>
+            </div>
+          )}
+          <p className={`text-[32px] font-bold leading-none ${netPositive ? 'text-[#2D6A4F]' : 'text-[#92400E]'}`}>
+            {netPositive ? '+' : '-'}{fmt(adjustedNet)}<span className="text-[20px] font-semibold">/month</span>
           </p>
-        ) : (
-          <p className="text-xs text-[var(--color-muted)] leading-relaxed">
-            This gap is normal. Most families bridge it with savings built before leave, or by adjusting spending during the leave period.
-          </p>
-        )}
+          {netPositive ? (
+            <p className="text-[13px] font-semibold text-[#2D6A4F] leading-relaxed">
+              You are in a strong position heading into leave.
+            </p>
+          ) : (
+            <p className="text-[13px] font-normal text-[var(--color-muted)] leading-relaxed">
+              Most families cover this gap with savings built before leave starts. The checklist below shows where to begin.
+            </p>
+          )}
+        </div>
+
       </div>
+      {/* ── End financial statement ── */}
 
       <Divider />
 
-      {/* Timeline */}
+      {/* Your next 18 months */}
       <div>
-        <h2 className="text-xl font-black text-[var(--color-charcoal)] mb-6">The next 18 months</h2>
-        <div>
+        <SectionHeading>Your next 18 months</SectionHeading>
+        <div className="mt-6">
           {timeline.map((step, i) => (
             <TimelineStep key={i} index={i} isLast={i === timeline.length - 1} {...step} />
           ))}
@@ -282,11 +491,11 @@ export default function Results({ values, onEdit }) {
 
       <Divider />
 
-      {/* Do these first */}
+      {/* Start with these */}
       <div>
-        <h2 className="text-xl font-black text-[var(--color-charcoal)] mb-1">Do these first</h2>
-        <p className="text-sm text-[var(--color-muted)] mb-4">
-          Check each off as you go. Tap the link icon to open the official resource.
+        <SectionHeading>Start with these</SectionHeading>
+        <p className="text-[13px] font-normal text-[var(--color-muted)] mt-1 mb-4 leading-relaxed">
+          Tap any item to open the official government resource.
         </p>
         <div className="space-y-2.5">
           {actions.map((item, i) => (
@@ -301,15 +510,19 @@ export default function Results({ values, onEdit }) {
         </div>
       </div>
 
-      {/* Ghost edit button */}
-      <div className="pt-2 pb-8">
+      <Divider />
+
+      {/* Footer — Export + Edit, identical button style, side by side on desktop */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-2 pb-8 print:hidden">
+        <ExportDropdown csvParams={csvParams} province={province} />
         <button
           onClick={onEdit}
-          className="w-full py-3.5 rounded-[20px] font-semibold text-sm border border-[var(--color-sand)] text-[var(--color-muted)] bg-transparent hover:border-[var(--color-bark)] hover:text-[var(--color-charcoal)] transition-all duration-200"
+          className="flex-1 h-12 rounded-[12px] font-medium text-[15px] border border-[#E5E5E3] text-[#1A1A1A] bg-white hover:bg-[#F7F7F5] transition-all duration-200"
         >
           Edit my details
         </button>
       </div>
+
     </div>
   )
 }

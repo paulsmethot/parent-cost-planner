@@ -31,7 +31,7 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
       {/* Province */}
       <div className="space-y-3">
         <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
-          Where in Canada are you raising your family? <span className="text-[var(--color-negative)]">*</span>
+          Where in Canada are you raising your family?
         </h2>
         <div className="relative">
           <select
@@ -63,7 +63,7 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
       {province && (
         <div className="space-y-4 screen-enter">
           <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
-            {isExpecting ? 'When is your baby due?' : 'When was your baby born?'} <span className="text-[var(--color-negative)]">*</span>
+            {isExpecting ? 'When is your baby due?' : 'When was your baby born?'}
           </h2>
 
           {/* Toggle */}
@@ -76,7 +76,7 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
                   : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
               }`}
             >
-              My baby is already born
+              Already born
             </button>
             <button
               onClick={() => handleToggle(true)}
