@@ -193,7 +193,7 @@ function ExportDropdown({ csvParams, province }) {
     <div ref={wrapperRef} className="relative flex-1 print:hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full h-12 rounded-[12px] font-medium text-[15px] border border-[#E5E5E3] text-[#1A1A1A] bg-white hover:bg-[#F7F7F5] transition-all duration-200 flex items-center justify-center gap-2"
+        className="w-full min-h-[48px] h-12 flex items-center justify-center gap-2 rounded-[12px] font-medium text-[15px] border border-[#E5E5E3] text-[#1A1A1A] bg-white hover:bg-[#F7F7F5] transition-all duration-200"
       >
         Export results
         <svg
@@ -453,7 +453,7 @@ export default function Results({ values, onEdit }) {
           className="bg-[#F7F7F5] border border-[#E5E5E3] rounded-[12px] p-5 space-y-3 animate-fade-slide-up opacity-0"
           style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}
         >
-          <SectionHeading>Monthly income gap</SectionHeading>
+          <SectionHeading>Estimated monthly income gap</SectionHeading>
           {onLeave && (
             <div className="text-[14px] font-normal text-[var(--color-muted)] space-y-0.5">
               <p>{fmt(totalComingIn)}/mo coming in</p>
@@ -493,7 +493,7 @@ export default function Results({ values, onEdit }) {
 
       {/* Start with these */}
       <div>
-        <SectionHeading>Start with these</SectionHeading>
+        <SectionHeading>Your first moves</SectionHeading>
         <p className="text-[13px] font-normal text-[var(--color-muted)] mt-1 mb-4 leading-relaxed">
           Tap any item to open the official government resource.
         </p>
@@ -517,7 +517,7 @@ export default function Results({ values, onEdit }) {
         <ExportDropdown csvParams={csvParams} province={province} />
         <button
           onClick={onEdit}
-          className="flex-1 h-12 rounded-[12px] font-medium text-[15px] border border-[#E5E5E3] text-[#1A1A1A] bg-white hover:bg-[#F7F7F5] transition-all duration-200"
+          className="flex-1 min-h-[48px] h-12 flex items-center justify-center rounded-[12px] font-medium text-[15px] border border-[#E5E5E3] text-[#1A1A1A] bg-white hover:bg-[#F7F7F5] transition-all duration-200"
         >
           Edit my details
         </button>

@@ -37,6 +37,7 @@ export default function ScreenTwo({ values, onChange, onBack, onNext }) {
         quickSelects={QUICK_SELECTS}
         label="PRIMARY CAREGIVER SALARY (PRE-LEAVE)"
         sublabel="The person taking parental leave"
+        placeholder="Enter your annual salary"
       />
 
       {/* Live EI preview */}
@@ -62,7 +63,7 @@ export default function ScreenTwo({ values, onChange, onBack, onNext }) {
         quickSelects={QUICK_SELECTS}
         label="CO-PARENT OR PARTNER SALARY"
         optional
-        allowZero
+        placeholder="Leave at $0 to skip"
       />
 
       {/* Explanatory note */}

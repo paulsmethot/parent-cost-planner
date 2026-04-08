@@ -42,9 +42,10 @@ export function isLeaveActive(babyDOB, isExpecting, leaveType) {
 
 // ─── Canada Child Benefit ─────────────────────────────────────────────────────
 // 2025-2026 benefit year (July 2025 – June 2026), one child under 6.
-// Phase 1: 7.0% of AFNI above $37,487 up to $81,222
-// Phase 2: additional 3.2% of AFNI above $81,222
-// Note: 13.8%/5.7% are the 2-child rates — single-child rates are 7.0%/3.2%.
+// Source: https://www.canada.ca/en/revenue-agency/services/child-family-benefits/canada-child-benefit/how-much.html
+// Maximum annual benefit: $7,787
+// Phase 1: 7.0% of AFNI above $37,487 up to $81,222 (single-child rate — 13.8% is the 2-child rate)
+// Phase 2: additional 3.2% of AFNI above $81,222 (single-child rate — 5.7% is the 2-child rate)
 // CCB does NOT reach $0 for one child until ~$250,000 AFNI.
 
 const CCB_BASE_ANNUAL = 7787
@@ -253,36 +254,57 @@ const ACTION_URLS = {
   ccb: 'https://www.canada.ca/en/revenue-agency/services/child-family-benefits/canada-child-benefit-overview.html',
   resp: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/registered-education-savings-plans-resps.html',
   childcare: 'https://www.canada.ca/en/public-health/services/caring-for-kids/child-care.html',
+  qpip: 'https://www.rqap.gouv.qc.ca/en/about-the-plan/general-information/quebec-parental-insurance-plan-qpip',
 }
 
-export function buildActionItems(province, _ageMonths, _isExpecting, householdIncome) {
+export function buildActionItems(province, _ageMonths, isExpecting, _householdIncome) {
   const isQC = province === 'QC'
-  const needsCLB = householdIncome < 45000
+  const items = []
 
-  return [
-    {
-      text: isQC
-        ? 'Apply for QPIP on the Retraite Quebec website before your leave starts'
-        : 'Apply for EI parental benefits on My Service Canada Account',
+  if (isExpecting) {
+    items.push({
+      text: 'Apply for EI before your last day of work',
       url: ACTION_URLS.ei,
-    },
-    {
+    })
+    items.push({
+      text: 'Register for CCB as soon as your baby arrives',
+      url: ACTION_URLS.ccb,
+    })
+    items.push({
+      text: 'Get on childcare waitlists now — spaces fill up fast',
+      url: ACTION_URLS.childcare,
+    })
+    items.push({
+      text: 'Open an RESP before baby arrives to start earning the $500 annual federal grant',
+      url: ACTION_URLS.resp,
+    })
+  } else {
+    items.push({
+      text: 'Apply for EI parental benefits on My Service Canada Account',
+      url: ACTION_URLS.ei,
+    })
+    items.push({
       text: 'Register your child for the Canada Child Benefit through CRA My Account',
       url: ACTION_URLS.ccb,
-    },
-    {
-      text: needsCLB
-        ? 'Open an RESP now. Lower-income families also qualify for the Canada Learning Bond (up to $2,000 extra, no contribution required).'
-        : 'Open an RESP at any bank or credit union. Every $2,500/year earns a $500 federal grant.',
+    })
+    items.push({
+      text: 'Open an RESP at any bank or credit union. Every $2,500/year earns a $500 federal grant.',
       url: ACTION_URLS.resp,
-    },
-    {
-      text: isQC
-        ? 'Add yourself to a CPE waitlist immediately. The subsidized rate is $13.10/day.'
-        : `Start touring daycares now. Regulated spots in ${provinceName(province)} average $${calcChildcareCost(province).toLocaleString('en-CA')}/month.`,
+    })
+    items.push({
+      text: `Start touring daycares now. Regulated spots in ${provinceName(province)} average $${calcChildcareCost(province).toLocaleString('en-CA')}/month.`,
       url: ACTION_URLS.childcare,
-    },
-  ]
+    })
+  }
+
+  if (isQC) {
+    items.unshift({
+      text: "Apply for QPIP instead of federal EI — Quebec's parental insurance is more generous",
+      url: ACTION_URLS.qpip,
+    })
+  }
+
+  return items
 }
 
 export function provinceName(code) {

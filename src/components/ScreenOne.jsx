@@ -12,17 +12,16 @@ const PROVINCES = [
 ]
 
 export default function ScreenOne({ values, onChange, onNext, onBack }) {
-  const { province, isExpecting, babyDOB } = values
-
-  const today = new Date().toISOString().split('T')[0]
-  const minDOB = new Date(new Date().setFullYear(new Date().getFullYear() - 6)).toISOString().split('T')[0]
-  const maxDue = new Date(new Date().setMonth(new Date().getMonth() + 10)).toISOString().split('T')[0]
+  const { province, babyDOB } = values
 
   const canContinue = province && babyDOB
 
-  function handleToggle(expecting) {
-    onChange('isExpecting', expecting)
-    onChange('babyDOB', '')
+  function handleDateChange(dateStr) {
+    onChange('babyDOB', dateStr)
+    if (dateStr) {
+      const today = new Date().toISOString().split('T')[0]
+      onChange('isExpecting', dateStr > today)
+    }
   }
 
   return (
@@ -59,63 +58,31 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
         </div>
       </div>
 
-      {/* Baby status — fades in after province selected */}
+      {/* Date input — fades in after province selected */}
       {province && (
-        <div className="space-y-4 screen-enter">
-          <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
-            {isExpecting ? 'When is your baby due?' : 'When was your baby born?'}
-          </h2>
-
-          {/* Toggle */}
-          <div className="flex bg-white border border-[var(--color-sand)] rounded-[12px] p-1 gap-1">
-            <button
-              onClick={() => handleToggle(false)}
-              className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
-                !isExpecting
-                  ? 'bg-[var(--color-accent)] text-white'
-                  : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
-              }`}
-            >
-              Already born
-            </button>
-            <button
-              onClick={() => handleToggle(true)}
-              className={`flex-1 py-2.5 rounded-[10px] text-sm font-bold transition-all duration-150 ${
-                isExpecting
-                  ? 'bg-[var(--color-accent)] text-white'
-                  : 'text-[var(--color-muted)] hover:text-[var(--color-charcoal)]'
-              }`}
-            >
-              I'm expecting
-            </button>
+        <div className="space-y-3 screen-enter">
+          <div>
+            <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
+              Baby's date of birth or expected due date
+            </h2>
+            <p className="text-sm text-[var(--color-muted)] mt-1.5 leading-relaxed">
+              Enter a past date if your baby is born, or a future date if you're expecting.
+            </p>
           </div>
 
-          {/* Date input */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wide">
-              {isExpecting ? 'Due date' : 'Date of birth'}
-            </label>
-            <input
-              type="date"
-              value={babyDOB}
-              min={isExpecting ? today : minDOB}
-              max={isExpecting ? maxDue : today}
-              onChange={(e) => onChange('babyDOB', e.target.value)}
-              className={`
-                w-full bg-white border rounded-[12px] px-4 py-4 text-base font-semibold
-                focus:outline-none transition-colors duration-150 cursor-pointer
-                ${babyDOB
-                  ? 'border-[var(--color-accent)] text-[var(--color-charcoal)]'
-                  : 'border-[var(--color-sand)] text-[var(--color-stone)]'
-                }
-              `}
-            />
-            {isExpecting && (
-              <p className="text-xs text-[var(--color-muted)]">
-                We'll anchor your timeline and leave window to this date.
-              </p>
-            )}
-          </div>
+          <input
+            type="date"
+            value={babyDOB}
+            onChange={(e) => handleDateChange(e.target.value)}
+            className={`
+              w-full box-border bg-white border rounded-[12px] px-4 py-4 text-base font-semibold
+              focus:outline-none transition-colors duration-150 cursor-pointer
+              ${babyDOB
+                ? 'border-[var(--color-accent)] text-[var(--color-charcoal)]'
+                : 'border-[var(--color-sand)] text-[var(--color-stone)]'
+              }
+            `}
+          />
         </div>
       )}
 
