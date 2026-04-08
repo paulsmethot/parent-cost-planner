@@ -63,7 +63,6 @@ export default function ScreenTwo({ values, onChange, onBack, onNext }) {
         quickSelects={QUICK_SELECTS}
         label="CO-PARENT OR PARTNER SALARY"
         optional
-        placeholder="Leave at $0 to skip"
       />
 
       {/* Explanatory note */}

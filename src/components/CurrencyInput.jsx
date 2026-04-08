@@ -82,7 +82,7 @@ export default function CurrencyInput({ value, onChange, quickSelects, label, su
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {quickSelects.map(q => {
           const isManual = q.value === null
           const active = isManual
@@ -93,7 +93,7 @@ export default function CurrencyInput({ value, onChange, quickSelects, label, su
               key={q.label}
               type="button"
               onClick={() => handleChip(q)}
-              className={`flex-[0_0_calc(33.333%-6px)] sm:flex-none px-3.5 py-1.5 rounded-full text-sm font-semibold text-center transition-all duration-150 ${
+              className={`w-full px-3.5 py-1.5 rounded-full text-sm font-semibold text-center transition-all duration-150 ${
                 isManual
                   ? active
                     ? 'bg-[var(--color-accent)] text-white border-2 border-[var(--color-accent)]'
