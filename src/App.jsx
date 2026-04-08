@@ -76,7 +76,7 @@ export default function App() {
         {/* Screens 1–4 — Intake */}
         {isIntake && (
           <div className="min-h-screen flex flex-col">
-            <div className="w-full max-w-[640px] mx-auto px-6 py-12 flex-1">
+            <div className="w-full max-w-[640px] mx-auto px-4 sm:px-6 py-12 flex-1">
               <StepIndicator step={step} />
 
               {/* Step 1 — Province + baby date */}

@@ -23,10 +23,10 @@ export default function ScreenTwo({ values, onChange, onBack, onNext }) {
     <div className="space-y-10">
       <div className="space-y-2">
         <h2 className="text-2xl font-black text-[var(--color-charcoal)] leading-tight">
-          What does your household earn today?
+          What's your household income?
         </h2>
         <p className="text-sm text-[var(--color-muted)] leading-relaxed">
-          We use these to calculate your EI payments and Canada Child Benefit.
+          Enter your gross annual income before taxes. We use these to calculate your EI payments and Canada Child Benefit.
         </p>
       </div>
 
@@ -35,9 +35,9 @@ export default function ScreenTwo({ values, onChange, onBack, onNext }) {
         value={caregiverIncome}
         onChange={(v) => onChange('caregiverIncome', v)}
         quickSelects={QUICK_SELECTS}
-        label="PRIMARY CAREGIVER SALARY (PRE-LEAVE)"
-        sublabel="The person taking parental leave"
-        placeholder="Enter your annual salary"
+        label="PRIMARY CAREGIVER INCOME (PRE-TAX)"
+        sublabel="The person taking parental leave, before any deductions"
+        placeholder="Enter your annual income"
       />
 
       {/* Live EI preview */}
@@ -61,13 +61,13 @@ export default function ScreenTwo({ values, onChange, onBack, onNext }) {
         value={partnerIncome}
         onChange={(v) => onChange('partnerIncome', v)}
         quickSelects={QUICK_SELECTS}
-        label="CO-PARENT OR PARTNER SALARY"
+        label="CO-PARENT OR PARTNER INCOME (PRE-TAX)"
         optional
       />
 
       {/* Explanatory note */}
       <p className="text-xs text-[var(--color-muted)] leading-relaxed -mt-4 px-1">
-        Your EI is calculated from the primary salary. Your Canada Child Benefit is based on the combined household total.
+        Your EI is calculated from the primary income. Your Canada Child Benefit is based on the combined household total.
       </p>
 
       <div className="flex gap-3">

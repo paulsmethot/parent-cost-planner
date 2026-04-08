@@ -477,6 +477,18 @@ export default function Results({ values, onEdit }) {
       </div>
       {/* ── End financial statement ── */}
 
+      {/* Disclaimer — contextual to the gap figures above */}
+      <div className="flex gap-2.5 bg-[#F7F7F5] rounded-[8px] px-[14px] py-[10px]">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0 mt-0.5">
+          <circle cx="7" cy="7" r="6" stroke="#6B6B6B" strokeWidth="1.5"/>
+          <path d="M7 6.5v3.5" stroke="#6B6B6B" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="7" cy="4.5" r="0.75" fill="#6B6B6B"/>
+        </svg>
+        <p className="text-[13px] font-normal text-[#6B6B6B] leading-relaxed">
+          All figures are estimates based on gross pre-tax income. Actual take-home amounts will vary based on your tax situation.
+        </p>
+      </div>
+
       <Divider />
 
       {/* Your next 18 months */}
@@ -513,7 +525,7 @@ export default function Results({ values, onEdit }) {
       <Divider />
 
       {/* Footer — Export + Edit, identical button style, side by side on desktop */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-2 pb-8 print:hidden">
+      <div className="flex flex-col sm:flex-row gap-3 pt-2 print:hidden">
         <ExportDropdown csvParams={csvParams} province={province} />
         <button
           onClick={onEdit}
@@ -522,6 +534,8 @@ export default function Results({ values, onEdit }) {
           Edit my details
         </button>
       </div>
+
+      <div className="pb-8" />
 
     </div>
   )

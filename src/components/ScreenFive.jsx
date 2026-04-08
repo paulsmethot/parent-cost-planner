@@ -28,10 +28,10 @@ function CostCard({ item, onChange, onRemove }) {
   const hasValue = item.amount > 0
 
   return (
-    <div className={`bg-white rounded-[16px] p-5 border-2 transition-colors duration-150 ${
+    <div className={`bg-white rounded-[16px] px-3 py-4 sm:px-5 border-2 transition-colors duration-150 ${
       hasValue ? 'border-[var(--color-accent)]' : 'border-transparent'
     }`}>
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2 sm:gap-3">
         <div className="flex-1 min-w-0">
           {/* Editable label */}
           <input
@@ -49,7 +49,7 @@ function CostCard({ item, onChange, onRemove }) {
         {/* Amount input */}
         <div className={`flex items-center border rounded-[10px] px-3 py-1.5 shrink-0 transition-colors ${
           hasValue ? 'border-[var(--color-accent)] bg-[var(--color-accent-light)]' : 'border-[var(--color-sand)] bg-[var(--color-warm-white)]'
-        }`}>
+        }`} style={{ minWidth: '80px', maxWidth: '100px' }}>
           <span className={`text-sm font-semibold mr-0.5 ${hasValue ? 'text-[var(--color-accent)]' : 'text-[var(--color-stone)]'}`}>$</span>
           <input
             type="text"
@@ -57,7 +57,7 @@ function CostCard({ item, onChange, onRemove }) {
             placeholder="0"
             value={amountDisplay}
             onChange={e => handleAmountInput(e.target.value)}
-            className={`w-20 text-sm font-bold bg-transparent focus:outline-none ${
+            className={`w-full min-w-0 text-sm font-bold bg-transparent focus:outline-none ${
               hasValue ? 'text-[var(--color-accent)]' : 'text-[var(--color-charcoal)]'
             }`}
           />
