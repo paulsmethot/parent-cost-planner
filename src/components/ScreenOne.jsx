@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 const PROVINCES = [
   { code: 'BC', name: 'British Columbia' },
   { code: 'AB', name: 'Alberta' },
@@ -13,74 +11,20 @@ const PROVINCES = [
   { code: 'NL', name: 'Newfoundland & Labrador' },
 ]
 
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
-
-// Years: 6 years back to 1 year ahead — covers born and expecting
-const currentYear = new Date().getFullYear()
-const YEARS = Array.from({ length: 8 }, (_, i) => currentYear - 6 + i)
-
-function daysInMonth(month, year) {
-  if (!month || !year) return 31
-  return new Date(year, month, 0).getDate()
-}
-
-const SELECT_CLASS = `
-  w-full appearance-none bg-white border rounded-[12px] px-3 py-4
-  text-base font-semibold focus:outline-none transition-colors duration-150 cursor-pointer
-`
-
 export default function ScreenOne({ values, onChange, onNext, onBack }) {
   const { province, babyDOB } = values
 
-  // Parse existing babyDOB into parts for controlled selects
-  const [month, setMonth] = useState(() => babyDOB ? parseInt(babyDOB.split('-')[1], 10) : '')
-  const [day, setDay] = useState(() => babyDOB ? parseInt(babyDOB.split('-')[2], 10) : '')
-  const [year, setYear] = useState(() => babyDOB ? parseInt(babyDOB.split('-')[0], 10) : '')
-
   const canContinue = province && babyDOB
 
-  function handlePartChange(newMonth, newDay, newYear) {
-    if (newMonth && newDay && newYear) {
-      const mm = String(newMonth).padStart(2, '0')
-      const dd = String(newDay).padStart(2, '0')
-      const dateStr = `${newYear}-${mm}-${dd}`
+  function handleDateChange(dateStr) {
+    onChange('babyDOB', dateStr)
+    if (dateStr) {
       const today = new Date().toISOString().split('T')[0]
-      onChange('babyDOB', dateStr)
       onChange('isExpecting', dateStr > today)
     } else {
-      onChange('babyDOB', '')
+      onChange('isExpecting', false)
     }
   }
-
-  function handleMonth(v) {
-    const m = v ? parseInt(v, 10) : ''
-    setMonth(m)
-    // Clamp day if it exceeds days in new month
-    const maxDay = daysInMonth(m, year)
-    const clampedDay = day > maxDay ? '' : day
-    if (day > maxDay) setDay('')
-    handlePartChange(m, clampedDay, year)
-  }
-
-  function handleDay(v) {
-    const d = v ? parseInt(v, 10) : ''
-    setDay(d)
-    handlePartChange(month, d, year)
-  }
-
-  function handleYear(v) {
-    const y = v ? parseInt(v, 10) : ''
-    setYear(y)
-    handlePartChange(month, day, y)
-  }
-
-  const maxDays = daysInMonth(month, year)
-  const days = Array.from({ length: maxDays }, (_, i) => i + 1)
-
-  const filled = month && day && year
 
   return (
     <div className="space-y-10">
@@ -116,7 +60,7 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
         </div>
       </div>
 
-      {/* Date selects — fades in after province selected */}
+      {/* Date input — fades in after province selected */}
       {province && (
         <div className="space-y-3 screen-enter">
           <div>
@@ -128,73 +72,31 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
             </p>
           </div>
 
-          {/* Three-column date picker — reliable on iOS Safari */}
-          <div className="grid grid-cols-3 gap-2">
-            {/* Month */}
-            <div className="relative">
-              <select
-                value={month}
-                onChange={(e) => handleMonth(e.target.value)}
-                className={`${SELECT_CLASS} ${month ? 'border-[var(--color-accent)] text-[var(--color-charcoal)]' : 'border-[var(--color-sand)] text-[var(--color-stone)]'}`}
-              >
-                <option value="">Month</option>
-                {MONTHS.map((name, i) => (
-                  <option key={i + 1} value={i + 1}>{name}</option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 6l4 4 4-4" stroke="var(--color-bark)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </div>
-
-            {/* Day */}
-            <div className="relative">
-              <select
-                value={day}
-                onChange={(e) => handleDay(e.target.value)}
-                className={`${SELECT_CLASS} ${day ? 'border-[var(--color-accent)] text-[var(--color-charcoal)]' : 'border-[var(--color-sand)] text-[var(--color-stone)]'}`}
-              >
-                <option value="">Day</option>
-                {days.map(d => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 6l4 4 4-4" stroke="var(--color-bark)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </div>
-
-            {/* Year */}
-            <div className="relative">
-              <select
-                value={year}
-                onChange={(e) => handleYear(e.target.value)}
-                className={`${SELECT_CLASS} ${year ? 'border-[var(--color-accent)] text-[var(--color-charcoal)]' : 'border-[var(--color-sand)] text-[var(--color-stone)]'}`}
-              >
-                <option value="">Year</option>
-                {YEARS.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 6l4 4 4-4" stroke="var(--color-bark)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </div>
+          {/* Wrapper forces full width on iOS Safari */}
+          <div style={{ width: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
+            <input
+              type="date"
+              value={babyDOB}
+              onChange={(e) => handleDateChange(e.target.value)}
+              style={{
+                width: '100%',
+                minWidth: '0',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+                display: 'block',
+                WebkitAppearance: 'none',
+                appearance: 'none',
+              }}
+              className={`
+                bg-white border rounded-[12px] px-4 py-4 text-base font-semibold
+                focus:outline-none transition-colors duration-150 cursor-pointer
+                ${babyDOB
+                  ? 'border-[var(--color-accent)] text-[var(--color-charcoal)]'
+                  : 'border-[var(--color-sand)] text-[var(--color-stone)]'
+                }
+              `}
+            />
           </div>
-
-          {filled && (
-            <p className="text-xs text-[var(--color-muted)]">
-              {babyDOB > new Date().toISOString().split('T')[0]
-                ? "We'll treat this as a due date."
-                : "We'll treat this as a date of birth."}
-            </p>
-          )}
         </div>
       )}
 
