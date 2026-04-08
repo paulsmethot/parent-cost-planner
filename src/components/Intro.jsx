@@ -81,15 +81,12 @@ export default function Intro({ onStart }) {
             <p>
               Made for Canadian parents, by Leon&apos;s dad,{' '}
               <a
-                href="https://www.linkedin.com/in/paulmethot"
+                href="https://www.linkedin.com/in/paulsmethot/"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-0.5 underline decoration-[var(--color-stone)] underline-offset-2"
+                className="underline decoration-[var(--color-stone)] underline-offset-2"
               >
-                <span>Paul Methot</span>
-                <span className="text-[12px]" aria-hidden="true">
-                  ↗
-                </span>
+                Paul Methot
               </a>
               .
             </p>
