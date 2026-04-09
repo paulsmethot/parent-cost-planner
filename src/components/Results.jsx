@@ -16,8 +16,14 @@ function fmt(n) {
   return '$' + Math.abs(Math.round(n)).toLocaleString('en-CA')
 }
 
+// Tier 1 — line items: /mo at same size as number (inherited 15px)
 function Mo() {
   return <span>/mo</span>
+}
+
+// Tier 2 — total rows: /mo at 15px, natural alignment
+function MoTotal() {
+  return <span className="text-[15px]">/mo</span>
 }
 
 function Divider() {
@@ -40,7 +46,7 @@ function LineItem({ label, subtitle, value, valueColor }) {
         <p className="text-[15px] font-medium text-[var(--color-charcoal)] leading-snug">{label}</p>
         {subtitle && <p className="text-[13px] font-normal text-[#6B6B6B] mt-0.5 leading-relaxed">{subtitle}</p>}
       </div>
-      <p className={`text-[15px] font-semibold shrink-0 leading-snug ${valueColor}`}>{value}</p>
+      <p className={`text-[15px] font-medium shrink-0 leading-snug ${valueColor}`}>{value}</p>
     </div>
   )
 }
@@ -164,7 +170,6 @@ function buildCSVString({ province, leaveType, eiMonthly, ccbMonthly, childcareC
 
 function ExportDropdown({ csvParams, province }) {
   const [open, setOpen] = useState(false)
-  const [sheetsNote, setSheetsNote] = useState(false)
   const wrapperRef = useRef(null)
 
   useEffect(() => {
@@ -181,13 +186,6 @@ function ExportDropdown({ csvParams, province }) {
 
   function handlePDF() { setOpen(false); window.print() }
   function handleCSV() { setOpen(false); triggerCSVDownload(buildCSVString(csvParams), filename) }
-  function handleSheets() {
-    setOpen(false)
-    triggerCSVDownload(buildCSVString(csvParams), filename)
-    window.open('https://docs.google.com/spreadsheets/d/create', '_blank', 'noopener,noreferrer')
-    setSheetsNote(true)
-    setTimeout(() => setSheetsNote(false), 4000)
-  }
 
   return (
     <div ref={wrapperRef} className="relative flex-1 print:hidden">
@@ -220,21 +218,7 @@ function ExportDropdown({ csvParams, province }) {
             </svg>
             Download CSV
           </button>
-          <div className="border-t border-[#E5E5E3]" />
-          <button onClick={handleSheets} className="w-full h-11 px-4 flex items-center gap-3 text-sm font-semibold text-[#1A1A1A] hover:bg-[#F7F7F5] transition-colors duration-150 text-left">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M6 2H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M9 1h4v4M13 1L7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Open in Google Sheets
-          </button>
         </div>
-      )}
-
-      {sheetsNote && (
-        <p className="text-[13px] text-[var(--color-muted)] text-center mt-2 animate-fade-in">
-          A CSV file has been downloaded. Import it into your new Sheet via File &gt; Import.
-        </p>
       )}
     </div>
   )
@@ -348,7 +332,7 @@ export default function Results({ values, onEdit }) {
                   label={isQC ? 'QPIP parental leave' : 'EI parental leave'}
                   subtitle={eiSubtitle}
                   value={<>+{fmt(leaveIncome)}<Mo /></>}
-                  valueColor="text-[#2D6A4F]"
+                  valueColor="text-[#1A1A1A]"
                 />
                 <ItemDivider />
               </>
@@ -357,7 +341,7 @@ export default function Results({ values, onEdit }) {
               label="Canada Child Benefit"
               subtitle={ccbSubtitle}
               value={<>+{fmt(ccbMonthly)}<Mo /></>}
-              valueColor="text-[#2D6A4F]"
+              valueColor="text-[#1A1A1A]"
             />
           </div>
 
@@ -381,7 +365,7 @@ export default function Results({ values, onEdit }) {
                 {onLeave ? 'Your total monthly income during leave' : 'Your total monthly income'}
               </p>
             </div>
-            <p className="text-[17px] font-bold text-[#2D6A4F] shrink-0">+{fmt(totalComingIn)}<Mo /></p>
+            <p className="text-[18px] font-semibold text-[#2D6A4F] shrink-0">+{fmt(totalComingIn)}<MoTotal /></p>
           </div>
         </div>
 
@@ -400,7 +384,7 @@ export default function Results({ values, onEdit }) {
                 label="Estimated childcare"
                 subtitle={isQC ? 'Subsidized CPE rate ($13.10/day)' : `${provinceName(province)} monthly average`}
                 value={<>-{fmt(childcareCost)}<Mo /></>}
-                valueColor="text-[#92400E]"
+                valueColor="text-[#1A1A1A]"
               />
             ) : (
               <div className="opacity-50 flex items-start justify-between gap-4">
@@ -421,7 +405,7 @@ export default function Results({ values, onEdit }) {
                   label="Additional costs"
                   subtitle="Based on what you told us"
                   value={<>-{fmt(additionalTotal)}<Mo /></>}
-                  valueColor="text-[#92400E]"
+                  valueColor="text-[#1A1A1A]"
                 />
               </>
             )}
@@ -430,10 +414,10 @@ export default function Results({ values, onEdit }) {
               <>
                 <ItemDivider />
                 <LineItem
-                  label="Your pre-leave monthly salary"
+                  label="Your pre-leave monthly income"
                   subtitle="The income parental leave replaces"
                   value={<>-{fmt(caregiverIncome / 12)}<Mo /></>}
-                  valueColor="text-[#92400E]"
+                  valueColor="text-[#1A1A1A]"
                 />
               </>
             )}
@@ -442,8 +426,8 @@ export default function Results({ values, onEdit }) {
           {/* Section total */}
           <div className="border-t border-[var(--color-sand)] pt-3 flex items-start justify-between gap-4">
             <p className="text-[15px] font-medium text-[var(--color-charcoal)] leading-snug">Total going out</p>
-            <p className="text-[17px] font-bold text-[#92400E] shrink-0">
-              -{fmt(totalGoingOut + (onLeave ? caregiverIncome / 12 : 0))}<Mo />
+            <p className="text-[18px] font-semibold text-[#92400E] shrink-0">
+              -{fmt(totalGoingOut + (onLeave ? caregiverIncome / 12 : 0))}<MoTotal />
             </p>
           </div>
         </div>
@@ -460,7 +444,7 @@ export default function Results({ values, onEdit }) {
               <p>{fmt(totalGoingOut + caregiverIncome / 12)}/mo to cover</p>
             </div>
           )}
-          <p className={`text-[32px] font-bold leading-none ${netPositive ? 'text-[#2D6A4F]' : 'text-[#92400E]'}`}>
+          <p className={`text-[36px] font-bold leading-none ${netPositive ? 'text-[#2D6A4F]' : 'text-[#92400E]'}`}>
             {netPositive ? '+' : '-'}{fmt(adjustedNet)}<span className="text-[20px] font-semibold">/month</span>
           </p>
           {netPositive ? (
