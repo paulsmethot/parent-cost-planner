@@ -70,6 +70,78 @@ export function calcCCBMonthly(householdIncome) {
   return Math.max(0, Math.round(annual / 12))
 }
 
+// ─── Provincial child benefits ────────────────────────────────────────────────
+// Additive layer — does not affect CCB, EI, or childcare logic.
+// All formulas: one child, two-parent family, 2025-2026 benefit year.
+
+// BC — BC Family Benefit (BCFB)
+// Source: https://www.canada.ca/en/revenue-agency/services/child-family-benefits/provincial-territorial-programs/province-british-columbia.html
+// Max annual $1,750 ($146/mo). Floor $694/yr between thresholds.
+
+// ON — Ontario Child Benefit (OCB)
+// Source: https://www.canada.ca/en/revenue-agency/services/child-family-benefits/provincial-territorial-programs/province-ontario.html
+// Max $143.91/mo ($1,726.92/yr). Phases to $0 at ~$69,564.
+
+// AB — Alberta Child and Family Benefit (ACFB), base component only
+// Source: https://www.canada.ca/en/revenue-agency/services/child-family-benefits/provincial-territorial-programs/province-alberta.html
+// Max annual $1,499 ($125/mo). Paid quarterly. Base component only.
+
+// QC — Quebec Family Allowance
+// Source: https://www.retraitequebec.gouv.qc.ca/en/enfants/allocation-famille/Pages/allocation-famille.aspx
+// Max $256/mo, minimum guaranteed $102/mo. Paid quarterly.
+
+export function calcProvincialBenefit(province, householdIncome) {
+  const income = householdIncome || 0
+
+  if (province === 'BC') {
+    let annual
+    if (income <= 29526) {
+      annual = 1750
+    } else if (income <= 94483) {
+      annual = Math.max(694, 1750 - 0.04 * (income - 29526))
+    } else {
+      annual = Math.max(0, 694 - 0.04 * (income - 94483))
+    }
+    return Math.max(0, Math.round(annual / 12))
+  }
+
+  if (province === 'ON') {
+    if (income <= 26364) return Math.round(143.91)
+    const annual = Math.max(0, 1726.92 - 0.04 * (income - 26364))
+    return Math.max(0, Math.round(annual / 12))
+  }
+
+  if (province === 'AB') {
+    let annual
+    if (income <= 27565) {
+      annual = 1499
+    } else if (income <= 46191) {
+      annual = Math.max(0, 1499 * (1 - (income - 27565) / (46191 - 27565)))
+    } else {
+      annual = 0
+    }
+    return Math.max(0, Math.round(annual / 12))
+  }
+
+  if (province === 'QC') {
+    if (income <= 59369) return 256
+    const annual = Math.max(1221, 3068 - 0.04 * (income - 59369))
+    return Math.round(annual / 12)
+  }
+
+  return 0
+}
+
+export function provincialBenefitName(province) {
+  const names = {
+    BC: 'BC Family Benefit',
+    ON: 'Ontario Child Benefit',
+    AB: 'Alberta Child and Family Benefit',
+    QC: 'Quebec Family Allowance',
+  }
+  return names[province] ?? null
+}
+
 // ─── Childcare costs ──────────────────────────────────────────────────────────
 
 export const CHILDCARE_COSTS = {
@@ -329,19 +401,30 @@ export function buildCompactVerdict(inputs) {
   const onLeave = isLeaveActive(babyDOB, isExpecting, leaveType)
   const fmt = (n) => '$' + Math.abs(Math.round(n)).toLocaleString('en-CA')
 
-  const totalComingIn = onLeave ? (hasTopUp ? eiMonthly + employerTopUp : eiMonthly) + ccbMonthly : ccbMonthly
+  const provBenefit = calcProvincialBenefit(province, householdIncome)
+  const provName = provincialBenefitName(province)
+  const totalComingIn = onLeave
+    ? (hasTopUp ? eiMonthly + employerTopUp : eiMonthly) + ccbMonthly + provBenefit
+    : ccbMonthly + provBenefit
+
+  const eiCcbLabel = provBenefit > 0 && provName
+    ? `EI, CCB, and ${provName}`
+    : 'EI and CCB'
+  const qpipCcbLabel = provBenefit > 0 && provName
+    ? `QPIP, CCB, and ${provName}`
+    : 'QPIP and CCB'
 
   if (isQC) {
     if (onLeave && !needsChildcare) {
-      return `During leave, you will bring in ${fmt(totalComingIn)}/month between QPIP and CCB. Since you'll be home with your baby, subsidized childcare costs apply when you return.`
+      return `During leave, you will bring in ${fmt(totalComingIn)}/month between ${qpipCcbLabel}. Since you'll be home with your baby, subsidized childcare costs apply when you return.`
     }
-    return `During leave, you will bring in ${fmt(totalComingIn)}/month between QPIP and CCB. Your biggest monthly cost is subsidized childcare at $430/month. Here is what to prepare for.`
+    return `During leave, you will bring in ${fmt(totalComingIn)}/month between ${qpipCcbLabel}. Your biggest monthly cost is subsidized childcare at $430/month. Here is what to prepare for.`
   }
   if (onLeave) {
     if (!needsChildcare) {
-      return `During leave, you will bring in ${fmt(totalComingIn)}/month between EI and CCB. Since you'll be home with your baby, paid childcare isn't factored in yet.`
+      return `During leave, you will bring in ${fmt(totalComingIn)}/month between ${eiCcbLabel}. Since you'll be home with your baby, paid childcare isn't factored in yet.`
     }
-    return `During leave, you will bring in ${fmt(totalComingIn)}/month between EI and CCB. Your biggest monthly cost is childcare at ${fmt(childcare)}/month. Here is what to prepare for.`
+    return `During leave, you will bring in ${fmt(totalComingIn)}/month between ${eiCcbLabel}. Your biggest monthly cost is childcare at ${fmt(childcare)}/month. Here is what to prepare for.`
   }
   return `Your CCB is worth ${fmt(ccbMonthly)}/month tax-free, and childcare in ${provinceName(province)} runs about ${fmt(childcare)}/month.`
 }

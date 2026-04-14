@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import {
   calcEIMonthly,
   calcCCBMonthly,
+  calcProvincialBenefit,
+  provincialBenefitName,
   calcChildcareCost,
   calcAdditionalCostsTotal,
   calcLeaveMonths,
@@ -126,10 +128,11 @@ function triggerCSVDownload(csvString, filename) {
   URL.revokeObjectURL(url)
 }
 
-function buildCSVString({ province, leaveType, eiMonthly, ccbMonthly, childcareCost,
+function buildCSVString({ province, leaveType, eiMonthly, ccbMonthly, provincialBenefit = 0,
+  provincialBenefitLabel = null, childcareCost,
   caregiverIncome, additionalTotal, adjustedNet, needsChildcare, onLeave,
   leaveIncome, returnMonthYear }) {
-  const totalComingIn = onLeave ? leaveIncome + ccbMonthly : ccbMonthly
+  const totalComingIn = onLeave ? leaveIncome + ccbMonthly + provincialBenefit : ccbMonthly + provincialBenefit
   const salaryMonthly = Math.round(caregiverIncome / 12)
   const activeChildcare = needsChildcare ? Math.round(childcareCost) : 0
   const totalGoingOut = activeChildcare + Math.round(additionalTotal) + (onLeave ? salaryMonthly : 0)
@@ -148,6 +151,7 @@ function buildCSVString({ province, leaveType, eiMonthly, ccbMonthly, childcareC
   ]
   if (onLeave) rows.push(['"EI Parental Leave"', `"${Math.round(eiMonthly)}"`])
   rows.push(['"Canada Child Benefit"', `"${Math.round(ccbMonthly)}"`])
+  if (provincialBenefit > 0 && provincialBenefitLabel) rows.push([`"${provincialBenefitLabel}"`, `"${Math.round(provincialBenefit)}"`])
   rows.push(['"Total Coming In"', `"${Math.round(totalComingIn)}"`])
   rows.push([''])
   rows.push(['"Monthly Costs During Leave"'])
@@ -242,16 +246,18 @@ export default function Results({ values, onEdit }) {
   const eiMonthly = calcEIMonthly(caregiverIncome, leaveType)
   const leaveIncome = hasTopUp ? eiMonthly + employerTopUp : eiMonthly
   const ccbMonthly = calcCCBMonthly(householdIncome)
+  const provincialBenefit = calcProvincialBenefit(province, householdIncome)
+  const provBenefitName = provincialBenefitName(province)
   const childcareCost = calcChildcareCost(province)
   const additionalTotal = calcAdditionalCostsTotal(additionalCosts)
 
   const activeChildcare = needsChildcare ? childcareCost : 0
   const adjustedNet = onLeave
-    ? Math.round(leaveIncome - (caregiverIncome / 12) + ccbMonthly - activeChildcare - additionalTotal)
-    : Math.round(ccbMonthly - activeChildcare - additionalTotal)
+    ? Math.round(leaveIncome - (caregiverIncome / 12) + ccbMonthly + provincialBenefit - activeChildcare - additionalTotal)
+    : Math.round(ccbMonthly + provincialBenefit - activeChildcare - additionalTotal)
   const netPositive = adjustedNet >= 0
 
-  const totalComingIn = onLeave ? leaveIncome + ccbMonthly : ccbMonthly
+  const totalComingIn = onLeave ? leaveIncome + ccbMonthly + provincialBenefit : ccbMonthly + provincialBenefit
   const totalGoingOut = activeChildcare + additionalTotal
 
   const returnMonthYear = babyDOB ? (() => {
@@ -274,8 +280,8 @@ export default function Results({ values, onEdit }) {
     setChecked(prev => ({ ...prev, [i]: !prev[i] }))
   }
 
-  const ccbSubtitle = ccbMonthly < 50
-    ? 'Reduced at this income level — file taxes early to increase.'
+  const ccbSubtitle = ccbMonthly < 10
+    ? 'Nearly fully phased out — filing taxes early in a lower-income leave year may still generate a small payment.'
     : 'Tax-free, deposited on the 20th'
 
   const eiSubtitle = hasTopUp
@@ -283,23 +289,14 @@ export default function Results({ values, onEdit }) {
     : `${leaveType === 'extended' ? '33%' : '55%'} of insurable earnings`
 
   const csvParams = {
-    province, leaveType, eiMonthly, ccbMonthly, childcareCost,
-    caregiverIncome, additionalTotal, adjustedNet, needsChildcare,
+    province, leaveType, eiMonthly, ccbMonthly,
+    provincialBenefit, provincialBenefitLabel: provBenefitName,
+    childcareCost, caregiverIncome, additionalTotal, adjustedNet, needsChildcare,
     onLeave, leaveIncome, returnMonthYear,
   }
 
   return (
     <div className="space-y-8">
-
-      {/* QC flag */}
-      {isQC && (
-        <div className="bg-[var(--color-positive-light)] border border-[var(--color-positive)] rounded-[12px] px-4 py-3 animate-fade-in">
-          <p className="text-[15px] font-semibold text-[var(--color-positive)]">Quebec's QPIP applies to you</p>
-          <p className="text-[13px] text-[var(--color-positive)] mt-0.5 opacity-80 leading-relaxed">
-            Your leave is administered by Retraite Quebec, not Service Canada. Benefits are generally more generous.
-          </p>
-        </div>
-      )}
 
       {/* Header */}
       <div className="animate-fade-slide-up opacity-0" style={{ animationFillMode: 'forwards' }}>
@@ -307,13 +304,23 @@ export default function Results({ values, onEdit }) {
         <h1 className="text-3xl font-black text-[var(--color-charcoal)] leading-tight mb-3">
           Your family's monthly picture, {provinceName(province)}, Canada.
         </h1>
-        <p className="text-base text-[var(--color-muted)] leading-relaxed max-w-[680px]">
+        <p className="text-base text-[var(--color-muted)] leading-relaxed">
           {firstSentence}
         </p>
       </div>
 
       {/* ── Financial statement — three cards grouped at 16px ── */}
       <div className="space-y-4">
+
+        {/* QC flag */}
+        {isQC && (
+          <div className="bg-[var(--color-positive-light)] border border-[var(--color-positive)] rounded-[12px] px-4 py-3 animate-fade-in">
+            <p className="text-[15px] font-semibold text-[var(--color-positive)]">Quebec's QPIP applies to you</p>
+            <p className="text-[13px] text-[var(--color-positive)] mt-0.5 opacity-80 leading-relaxed">
+              Your leave is administered by Retraite Quebec, not Service Canada. Benefits are generally more generous.
+            </p>
+          </div>
+        )}
 
         {/* Monthly income during leave */}
         <div
@@ -343,6 +350,23 @@ export default function Results({ values, onEdit }) {
               value={<>+{fmt(ccbMonthly)}<Mo /></>}
               valueColor="text-[#1A1A1A]"
             />
+            {provincialBenefit > 0 && provBenefitName && (
+              <>
+                <ItemDivider />
+                <LineItem
+                  label={provBenefitName}
+                  subtitle={
+                    province === 'AB'
+                      ? 'Paid quarterly (Aug, Nov, Feb, May). Base component only.'
+                      : province === 'QC'
+                      ? 'Paid quarterly (Jan, Apr, Jul, Oct).'
+                      : 'Provincial supplement, tax-free'
+                  }
+                  value={<>+{fmt(provincialBenefit)}<Mo /></>}
+                  valueColor="text-[#1A1A1A]"
+                />
+              </>
+            )}
           </div>
 
           {/* CCB footnote — grounded inside the section */}

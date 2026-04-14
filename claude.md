@@ -50,15 +50,30 @@ GitHub: github.com/paulsmethot/parent-cost-planner
 - Subtle fade + upward slide transition between 
   screens (200ms)
 
+## Global footer bar
+Appears on every screen — intro, all 4 steps, results:
+- Full width, border-top: 1px solid #E5E5E3
+- Background: #FAFAFA
+- Padding: 16px 24px
+- Single line, centered, font-size 12px, 
+  colour #6B6B6B:
+  "Made for Canadian parents, by Leon's dad, 
+  Paul Methot."
+- "Paul Methot" links to 
+  https://www.linkedin.com/in/paulsmethot/
+  subtle underline, same muted colour, no icon
+- Footer sits at bottom of viewport on short screens,
+  flows naturally below content on long screens
+
 ## Core data model
 - province (string, e.g. "BC", "ON", "QC")
 - babyDOB (date string — past date = already born, 
   future date = expecting)
 - isExpecting (boolean, derived: babyDOB > today)
 - caregiverIncome (number, annual CAD — primary 
-  caregiver taking leave)
+  caregiver taking leave, gross pre-tax)
 - partnerIncome (number, annual CAD — optional, 
-  defaults to 0)
+  defaults to 0, gross pre-tax)
 - householdIncome (derived: caregiverIncome + 
   partnerIncome)
 - leaveType (enum: "standard" | "extended" | 
@@ -88,10 +103,7 @@ GitHub: github.com/paulsmethot/parent-cost-planner
 - Subheadline: personalized breakdown description
 - Three trust signals with icons
 - CTA: "Start planning" — black button, white text
-- Footer: "Made for Canadian parents, by Leon's dad, 
-  Paul Methot." with LinkedIn link to 
-  https://www.linkedin.com/in/paulsmethot/
-  No external link icon on the footer link.
+- Global footer bar at bottom
 
 ### Screen 1 — Province + baby date (Step 1 of 4)
 - Province picker (select dropdown, full width)
@@ -102,17 +114,20 @@ GitHub: github.com/paulsmethot/parent-cost-planner
 - System derives isExpecting by comparing date to today
 - No toggle needed — date comparison handles logic
 - Continue disabled until both province and date filled
+- Global footer bar at bottom
 
 ### Screen 2 — Household income (Step 2 of 4)
-- Heading: "What does your household earn today?"
-- Sublabel: "We use these to calculate your EI 
-  payments and Canada Child Benefit."
+- Heading: "What's your household income?"
+- Sublabel: "Enter your gross annual income before 
+  taxes. We use these to calculate your EI payments 
+  and Canada Child Benefit."
 
 Field 1 — Required:
-- Label: "PRIMARY CAREGIVER SALARY (PRE-LEAVE)"
-- Sublabel: "The person taking parental leave"
+- Label: "PRIMARY CAREGIVER INCOME (PRE-TAX)"
+- Sublabel: "The person taking parental leave, 
+  before any deductions"
 - CAD $ text input with placeholder: 
-  "Enter your annual salary"
+  "Enter your annual income"
 - Pills (3-column grid, fully toggleable):
   $50K, $75K, $100K, $125K, $150K, Custom
 - Pills are toggleable — click to select, click 
@@ -122,7 +137,7 @@ Field 1 — Required:
 - Live EI estimate card updates as user inputs value
 
 Field 2 — Optional:
-- Label: "CO-PARENT OR PARTNER SALARY"
+- Label: "CO-PARENT OR PARTNER INCOME (PRE-TAX)"
 - Optional badge inline with label
 - No placeholder text — leave empty
 - Same pill layout as Field 1, identical behaviour
@@ -130,9 +145,10 @@ Field 2 — Optional:
 - Does not affect Continue button state
 
 - Note below fields: "Your EI is calculated from 
-  the primary salary. Your Canada Child Benefit 
+  the primary income. Your Canada Child Benefit 
   is based on the combined household total."
 - Continue enables when primary field > 0
+- Global footer bar at bottom
 
 ### Screen 3 — Leave type (Step 3 of 4)
 - Heading: "What kind of leave are you taking?"
@@ -148,9 +164,9 @@ Field 2 — Optional:
 - If top-up selected: reveal CAD $ text input 
   for monthly top-up amount, no upper cap, 
   placeholder "e.g. 2,500"
-- CTA: "Continue" (not "See my numbers" — 
-  there is still one more step)
+- CTA: "Continue"
 - No em dashes in card copy anywhere
+- Global footer bar at bottom
 
 ### Screen 4 — Additional monthly costs (Step 4 of 4)
 - Heading: "Any other monthly costs?"
@@ -177,6 +193,7 @@ Field 2 — Optional:
 - CTA: "See my numbers" if any costs entered, 
   "Skip this step" if all $0
 - All fields optional
+- Global footer bar at bottom
 
 ### Screen 5 — Results dashboard
 Max-width 1100px, single column on mobile, 
@@ -190,18 +207,17 @@ Layout order (strict — do not reorder):
    states income figure confidently, 
    no apologetic second sentence
 4. "Monthly income during leave" section
-5. CCB footnote (grounded inside income section)
-6. "Monthly costs during leave" section
-   (includes childcare future line item if applicable)
-7. "Estimated monthly income gap" card
+5. "Monthly costs during leave" section
+6. "Estimated monthly income gap" card
+7. Estimates disclaimer info box
 8. Divider
 9. "Your next 18 months" timeline
 10. Divider
 11. "Your first moves" checklist
 12. Divider
-13. "Export results" dropdown button (full width)
-14. "Edit my details" ghost button (full width, 
-    8px gap below export)
+13. "Export results" dropdown button
+14. "Edit my details" ghost button
+15. Global footer bar
 
 ## Results screen details
 
@@ -220,9 +236,10 @@ Line items:
 - Canada Child Benefit: +$[amount]/mo (green)
 - Dividers between rows: 1px solid #F0F0EE
 - Total coming in: +$[amount]/mo (green, larger)
-- CCB footnote grounded inside this section:
+- CCB footnote after total row:
   Background #F7F7F5, border-radius 8px, 
-  info icon, 13px text, colour #6B6B6B
+  padding 10px 14px, info icon left, 
+  13px text, colour #6B6B6B
   Copy: "CCB updates each July from your prior 
   year tax return. A lower-income leave year 
   may increase your benefit next cycle."
@@ -233,16 +250,16 @@ Line items:
   Shown as future awareness item at 50% opacity,
   "From [Month Year]" pill badge on right,
   "Not included in your current gap calculation" 
-  note below at 50% opacity
-- Your pre-leave monthly salary: -$[amount]/mo (amber)
+  note below at 50% opacity,
+  do NOT include in gap calculation
+- Your pre-leave monthly income: -$[amount]/mo (amber)
 - Additional costs (if any): -$[amount]/mo (amber)
 - Total going out: -$[amount]/mo (amber, larger)
 
 ### Estimated monthly income gap card
 - Background: #F7F7F5, border: 1px solid #E5E5E3, 
   border-radius: 12px
-- Heading: "Estimated monthly income gap" 
-  (matches other section heading styles)
+- Heading: "Estimated monthly income gap"
 - Summary lines: "$[x]/mo coming in" and 
   "$[x]/mo to cover" at 100% opacity
 - Hero number: large, amber (#92400E)
@@ -250,6 +267,16 @@ Line items:
 - Reassurance copy: "Most families cover this gap 
   with savings built before leave starts. The 
   checklist below shows where to begin."
+
+### Estimates disclaimer info box
+Sits directly below the gap card, above the divider:
+- Same style as CCB footnote
+- Background: #F7F7F5, border-radius: 8px, 
+  padding: 10px 14px, info icon left, 
+  13px text, colour #6B6B6B
+- Copy: "All figures are estimates based on gross 
+  pre-tax income. Actual take-home amounts will 
+  vary based on your tax situation."
 
 ### Amount formatting
 - Line item amounts: "/mo" at 100% opacity
@@ -274,37 +301,48 @@ Line items:
 - Items are CONTEXTUAL based on isExpecting:
 
 If expecting (isExpecting = true):
-1. Apply for EI before your last day of work
+1. "Apply for EI before your last day of work"
    → canada.ca/en/services/benefits/ei/
      ei-maternity-parental.html
-2. Register for CCB as soon as your baby arrives
+2. "Register for CCB as soon as your baby arrives"
    → canada.ca/en/revenue-agency/services/
      child-family-benefits/
      canada-child-benefit-overview.html
-3. Get on childcare waitlists now — spaces fill fast
+3. "Get on childcare waitlists now. Spaces fill fast."
    → canada.ca/en/public-health/services/
      caring-for-kids/child-care.html
-4. Open an RESP before baby arrives to start 
-   earning the $500 annual federal grant
+4. "Open an RESP before baby arrives to start 
+   earning the $500 annual federal grant."
    → canada.ca/en/revenue-agency/services/tax/
      individuals/topics/
      registered-education-savings-plans-resps.html
 
 If already born (isExpecting = false):
-1. Apply for EI parental benefits on My Service 
-   Canada Account
-2. Register your child for CCB through CRA 
-   My Account
-3. Open an RESP at any bank or credit union. 
-   Every $2,500/year earns a $500 federal grant
-4. Start touring daycares now. Regulated spots 
-   in [Province] average $[amount]/month
+1. "Apply for EI parental benefits on My Service 
+   Canada Account."
+   → canada.ca/en/services/benefits/ei/
+     ei-maternity-parental.html
+2. "Register your child for CCB through CRA 
+   My Account."
+   → canada.ca/en/revenue-agency/services/
+     child-family-benefits/
+     canada-child-benefit-overview.html
+3. "Open an RESP at any bank or credit union. 
+   Every $2,500/year earns a $500 federal grant."
+   → canada.ca/en/revenue-agency/services/tax/
+     individuals/topics/
+     registered-education-savings-plans-resps.html
+4. "Start touring daycares now. Regulated spots 
+   in [Province] average $[amount]/month."
+   → canada.ca/en/public-health/services/
+     caring-for-kids/child-care.html
 
 If province is QC, add in both scenarios:
-- Apply for QPIP instead of federal EI
-  → rqap.gouv.qc.ca/en/about-the-plan/
-    general-information/
-    quebec-parental-insurance-plan-qpip
+"Apply for QPIP instead of federal EI. 
+Quebec's parental insurance is more generous."
+→ rqap.gouv.qc.ca/en/about-the-plan/
+  general-information/
+  quebec-parental-insurance-plan-qpip
 
 ### Export results dropdown
 - Single ghost button with chevron
@@ -334,7 +372,7 @@ Both "Export results" and "Edit my details":
 - Extended leave (18 months): 33% of weekly 
   insurable earnings × 4.33
 - Employer top-up: add flat monthly amount 
-  on top of EI, no cap
+  on top of EI, no upper cap
 - Quebec uses QPIP — always flag with a note
 - Leave window logic based on babyDOB:
   · Baby under 12 months: standard leave open
@@ -353,12 +391,14 @@ how-much.html
 - Second reduction: 3.2% of income above $81,222 
   (single child rate)
 - Display as monthly (annual ÷ 12)
-- Never show $0 unless mathematically correct 
-  at very high incomes (above ~$200K)
-- CCB $0 copy: "At your household income, CCB 
-  has reduced significantly. Filing taxes early 
-  in a lower-income leave year may increase 
-  your benefit next cycle."
+- Never show $0 unless mathematically correct.
+  CCB for one child under 6 does not reach $0 
+  until approximately $229K AFNI. At $200K 
+  income CCB is still approximately $77/month.
+- CCB near-zero copy (< $10/mo): "At your 
+  household income, CCB is nearly fully phased 
+  out. Filing taxes early in a lower-income 
+  leave year may still generate a small payment."
 
 ### Childcare costs by province (monthly)
 - BC: $1,350
@@ -373,8 +413,8 @@ how-much.html
 - NL: $820
 
 ### Net monthly gap calculation
-Gap = caregiverMonthly - EI monthly 
-      (this is the income gap, shown as hero number)
+Gap = caregiverMonthly - EI monthly
+(shown as hero number in gap card)
 
 Full net = EI + CCB + employerTopUp 
            - childcare (if applicable) 
@@ -382,9 +422,9 @@ Full net = EI + CCB + employerTopUp
            - caregiverMonthly
 
 ### Childcare future line item logic
-If baby age < leave duration months:
+If baby age in months < leave duration in months:
 - Show childcare as awareness item only
-- Date = babyDOB + leave duration
+- Date shown = babyDOB + leave duration
 - Do NOT include in gap calculation
 
 ## Quebec special handling
@@ -399,6 +439,8 @@ If baby age < leave duration months:
 - All copy reads as humanly written
 - Verdict paragraph: one confident sentence only
 - Section headings: sentence case throughout
+- Use "income" not "salary" throughout
+- All income inputs are gross pre-tax
 
 ## What to avoid
 - Do not use Inter, Roboto, Arial, or system fonts
@@ -411,28 +453,67 @@ If baby age < leave duration months:
 - Do not add loading states — calculations instant
 - Do not over-engineer — this is a V0
 
+## Workflow notes
+- Use Cursor chat for targeted polish and 
+  iterative changes to existing components
+- Use Claude Code for multi-file structural 
+  changes and new feature builds
+- Use Cursor Agents for end-to-end feature 
+  builds with clear scope and success criteria
+- Start each new Claude Code session fresh 
+  rather than extending long sessions
+- Test at 390px mobile width before every push
+
 ## Deployment
 - GitHub: github.com/paulsmethot/parent-cost-planner
 - Live: parent-cost-planner.vercel.app
 - Auto-deploys on push to main
 - No environment variables — fully client-side
+- Deploy command: git add . && git commit -m 
+  "description" && git push
 
-## V1 priority list (next builds)
-1. Childcare future line item (already designed)
-2. Export results — PDF, CSV, Google Sheets 
-   (prompt ready)
-3. CCB rates live API integration (canada.ca)
-4. Provincial child benefits:
+## Completed features
+- 4-step intake flow with intro screen
+- Province picker + single date input 
+  (isExpecting derived from date)
+- Combined household income step with 
+  toggleable pills
+- Leave type selection with employer top-up
+- Optional additional costs with editable, 
+  removable, custom expense cards
+- Results dashboard with income/costs breakdown
+- Estimated monthly income gap card
+- Real calendar timeline (Your next 18 months)
+- Contextual action checklist (Your first moves)
+- Export results — PDF, CSV, Google Sheets
+- Global footer bar on all screens
+- CCB footnote grounded in income section
+- Estimates disclaimer info box near gap card
+
+## Pre-launch (before LinkedIn post)
+1. Verify contextual action items switch 
+   correctly based on isExpecting
+2. Verify CCB formula against official CRA source
+3. Provincial child benefits:
    · BC Family Benefit
    · BC Fee Reduction Initiative
    · Ontario Child Benefit
    · Alberta Child and Family Benefit
    · Quebec Family Allowance
 
-## V2 priority list (future builds)
-5. Child Disability Benefit (CDB) — checkbox 
+## V1 priority list (post-launch)
+4. Leave type comparison (12mo vs 18mo)
+5. Annual view toggle on results screen
+6. Child Disability Benefit (CDB) — checkbox 
    for already-born babies
-6. Auth + child profiles + multiples support
-7. Annual view toggle on results screen
-8. Leave type comparison (12mo vs 18mo)
+
+## V2 priority list (scope expansion)
+7. Tax calculation layer (federal + provincial)
+8. Auth + child profiles + multiples support
 9. Option B split layout for intro screen
+
+## V3 / exploratory
+10. CCB rates live API integration (canada.ca)
+    — only if a clean data source exists
+11. Cursor Agents experiment — use for first 
+    provincial benefits build as test case

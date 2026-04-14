@@ -16,7 +16,8 @@
       "Bash(npm info:*)",
       "Bash(npm --version)",
       "Bash(git rm:*)",
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "Bash(npm test:*)"
     ]
   }
 }
