@@ -383,12 +383,7 @@ export default function Results({ values, onEdit }) {
 
           {/* Section total */}
           <div className="border-t border-[var(--color-sand)] pt-3 flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[15px] font-medium text-[var(--color-charcoal)] leading-snug">Total coming in</p>
-              <p className="text-[13px] text-[#6B6B6B] mt-0.5">
-                {onLeave ? 'Your total monthly income during leave' : 'Your total monthly income'}
-              </p>
-            </div>
+            <p className="text-[15px] font-medium text-[var(--color-charcoal)] leading-snug">Total coming in</p>
             <p className="text-[18px] font-semibold text-[#2D6A4F] shrink-0">+{fmt(totalComingIn)}<MoTotal /></p>
           </div>
         </div>
