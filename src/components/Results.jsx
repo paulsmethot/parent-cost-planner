@@ -482,7 +482,7 @@ export default function Results({ values, onEdit }) {
           <circle cx="7" cy="4.5" r="0.75" fill="#6B6B6B"/>
         </svg>
         <p className="text-[13px] font-normal text-[#6B6B6B] leading-relaxed">
-          All figures are estimates based on gross pre-tax income. Actual take-home amounts will vary based on your tax situation.
+          Estimates based on gross pre-tax income. Actual amounts will vary.
         </p>
       </div>
 
