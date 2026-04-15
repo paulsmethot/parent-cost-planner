@@ -462,12 +462,6 @@ export default function Results({ values, onEdit }) {
           style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}
         >
           <SectionHeading>Estimated monthly income gap</SectionHeading>
-          {onLeave && (
-            <div className="text-[14px] font-normal text-[var(--color-muted)] space-y-0.5">
-              <p>{fmt(totalComingIn)}/mo coming in</p>
-              <p>{fmt(totalGoingOut + caregiverIncome / 12)}/mo to cover</p>
-            </div>
-          )}
           <p className={`text-[36px] font-bold leading-none ${netPositive ? 'text-[#2D6A4F]' : 'text-[#92400E]'}`}>
             {netPositive ? '+' : '-'}{fmt(adjustedNet)}<span className="text-[20px] font-semibold">/month</span>
           </p>
