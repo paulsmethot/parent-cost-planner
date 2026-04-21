@@ -79,14 +79,14 @@ export default function Intro({ onStart }) {
           {/* Footer note */}
           <div className="text-xs text-[var(--color-stone)] text-center">
             <p>
-              Made for Canadian parents by Leon&apos;s dad,{' '}
+              Made for Canadian parents by{' '}
               <a
                 href="https://www.linkedin.com/in/paulsmethot/"
                 target="_blank"
                 rel="noreferrer"
                 className="underline decoration-[var(--color-stone)] underline-offset-2"
               >
-                Paul Methot
+                Leon&apos;s dad
               </a>
               .
             </p>

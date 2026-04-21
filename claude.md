@@ -564,17 +564,39 @@ If baby age in months < leave duration in months:
   containers at #F1F1F1
 - Total row sublabels removed for cleaner layout
 
-## V1 priority list
+## Pre-launch checklist (for all future launches)
+- Enable Vercel Analytics before launch day
+- Set up branch-based development for all 
+  new features — merge to main only when stable
+- Test full flow across multiple provinces, 
+  income levels, and isExpecting scenarios
+- Verify export functions (PDF, CSV) working
+- Update LinkedIn About and headline before 
+  posting
+- Prepare 1200x1200 visual asset with mobile 
+  screenshots on #F7F7F5 background
+- Draft and schedule LinkedIn post in advance
+- Have URL with https:// ready for post
+
+## V1 priority list (post-launch)
 1. Leave type comparison (12mo vs 18mo)
 2. Annual view toggle on results screen
 3. Child Disability Benefit (CDB) — checkbox 
    for already-born babies
+4. Will planning as contextual checklist item
+   — low lift, surfaces for all users, 
+   links to official government resource
+5. US version scoping — research state by 
+   state regulatory complexity
 
-## V2 priority list
-4. Tax calculation layer (federal + provincial)
-5. Auth + child profiles + multiples support
-6. Option B split layout for intro screen
+## V2 priority list (scope expansion)
+6. Tax calculation layer (federal + provincial)
+7. Auth + child profiles + multiples support
+8. Option B split layout for intro screen
 
 ## V3 / exploratory
-7. CCB rates live API integration (canada.ca)
+9. CCB rates live API integration (canada.ca)
    — only if a clean data source exists
+10. Cursor Agents experiment — use for first 
+    major multi-file build as test case
+11. US version build — pending scoping from V1
