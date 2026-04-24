@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { trackEvent, bucketIncome, bucketGap } from '../lib/analytics'
 import {
   calcEIMonthly,
   calcCCBMonthly,
@@ -188,8 +189,8 @@ function ExportDropdown({ csvParams, province }) {
   const yyyymm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   const filename = `parent-cost-planner-${province.toLowerCase()}-${yyyymm}.csv`
 
-  function handlePDF() { setOpen(false); window.print() }
-  function handleCSV() { setOpen(false); triggerCSVDownload(buildCSVString(csvParams), filename) }
+  function handlePDF() { setOpen(false); trackEvent('export_pdf'); window.print() }
+  function handleCSV() { setOpen(false); trackEvent('export_csv'); triggerCSVDownload(buildCSVString(csvParams), filename) }
 
   return (
     <div ref={wrapperRef} className="relative flex-1 print:hidden">
@@ -279,6 +280,16 @@ export default function Results({ values, onEdit }) {
   function toggleCheck(i) {
     setChecked(prev => ({ ...prev, [i]: !prev[i] }))
   }
+
+  useEffect(() => {
+    trackEvent('results_viewed', {
+      province,
+      leave_type: leaveType,
+      income_range: bucketIncome(caregiverIncome),
+      gap_range: bucketGap(adjustedNet),
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const ccbSubtitle = ccbMonthly < 10
     ? 'Nearly fully phased out — filing taxes early in a lower-income leave year may still generate a small payment.'

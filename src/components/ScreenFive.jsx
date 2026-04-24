@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { trackEvent } from '../lib/analytics'
 
 const DEFAULT_COSTS = [
   { id: 'food', label: 'Baby food & formula', desc: 'Typically $100 to $300/month in year one', amount: 0 },
@@ -106,6 +107,7 @@ export default function ScreenFive({ values, onCostChange, onBack, onNext }) {
 
   function handleNext() {
     onCostChange(costs)
+    trackEvent('step_4_completed', { has_additional_costs: total > 0 })
     onNext()
   }
 

@@ -1,3 +1,5 @@
+import { trackEvent } from '../lib/analytics'
+
 const PROVINCES = [
   { code: 'BC', name: 'British Columbia' },
   { code: 'AB', name: 'Alberta' },
@@ -109,7 +111,10 @@ export default function ScreenOne({ values, onChange, onNext, onBack }) {
           ←
         </button>
         <button
-          onClick={onNext}
+          onClick={() => {
+            trackEvent('step_1_completed', { province, is_expecting: values.isExpecting })
+            onNext()
+          }}
           disabled={!canContinue}
           className={`
             flex-1 py-4 rounded-[20px] font-bold text-base transition-all duration-200

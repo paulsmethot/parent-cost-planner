@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { trackEvent } from '../lib/analytics'
 
 const LEAVE_TYPES = [
   {
@@ -156,7 +157,10 @@ export default function ScreenFour({ values, onChange, onBack, onNext }) {
           ←
         </button>
         <button
-          onClick={onNext}
+          onClick={() => {
+            trackEvent('step_3_completed', { leave_type: leaveType })
+            onNext()
+          }}
           className="flex-1 py-4 rounded-[20px] font-bold text-lg bg-[var(--color-accent)] text-white hover:opacity-80 active:scale-[0.98] transition-all duration-200"
         >
           Continue →

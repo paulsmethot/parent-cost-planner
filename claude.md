@@ -583,20 +583,24 @@ If baby age in months < leave duration in months:
 2. Annual view toggle on results screen
 3. Child Disability Benefit (CDB) — checkbox 
    for already-born babies
-4. Will planning as contextual checklist item
-   — low lift, surfaces for all users, 
-   links to official government resource
-5. US version scoping — research state by 
+4. US version scoping — research state by 
    state regulatory complexity
+5. Google Analytics 4 — custom event tracking 
+   for step completions, results viewed, and 
+   export actions
+6. Willful partnership — replace government 
+   will link with Willful referral link. 
+   Requires GA4 engagement data first before 
+   approaching Alyssa.
 
 ## V2 priority list (scope expansion)
-6. Tax calculation layer (federal + provincial)
-7. Auth + child profiles + multiples support
-8. Option B split layout for intro screen
+7. Tax calculation layer (federal + provincial)
+8. Auth + child profiles + multiples support
+9. Option B split layout for intro screen
 
 ## V3 / exploratory
-9. CCB rates live API integration (canada.ca)
-   — only if a clean data source exists
-10. Cursor Agents experiment — use for first 
+10. CCB rates live API integration (canada.ca)
+    — only if a clean data source exists
+11. Cursor Agents experiment — use for first 
     major multi-file build as test case
-11. US version build — pending scoping from V1
+12. US version build — pending scoping from V1

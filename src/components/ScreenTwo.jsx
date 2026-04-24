@@ -1,4 +1,5 @@
 import { calcEIMonthly } from '../lib/calculations'
+import { trackEvent, bucketIncome } from '../lib/analytics'
 import CurrencyInput from './CurrencyInput'
 
 const QUICK_SELECTS = [
@@ -78,7 +79,10 @@ export default function ScreenTwo({ values, onChange, onBack, onNext }) {
           ←
         </button>
         <button
-          onClick={onNext}
+          onClick={() => {
+            trackEvent('step_2_completed', { income_range: bucketIncome(caregiverIncome) })
+            onNext()
+          }}
           disabled={!canContinue}
           className={`flex-1 py-4 rounded-[20px] font-bold text-base transition-all duration-200 ${
             canContinue
