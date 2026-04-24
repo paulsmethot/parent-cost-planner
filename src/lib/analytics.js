@@ -2,7 +2,7 @@ import ReactGA from 'react-ga4'
 
 export function initGA() {
   ReactGA.initialize('G-0KX0T2CY6C')
-  console.log('GA4 initialized')
+  ReactGA.send({ hitType: 'pageview', page: '/' })
 }
 
 export function bucketIncome(annual) {
