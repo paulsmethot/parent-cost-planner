@@ -62,24 +62,24 @@ export default function ScreenFour({ values, onChange, onBack, onNext }) {
               key={t.value}
               onClick={() => onChange('leaveType', t.value)}
               className={`
-                text-left rounded-[16px] p-5 transition-all duration-150 border-2
+                text-left rounded-[16px] p-5 transition-all duration-150
                 ${selected
-                  ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
-                  : 'bg-white border-[var(--color-sand)] text-[var(--color-charcoal)] hover:border-[var(--color-bark)]'
+                  ? 'bg-[var(--color-warm-white)] border-2 border-[var(--color-charcoal)] text-[var(--color-charcoal)]'
+                  : 'bg-white border border-[var(--color-sand)] text-[var(--color-charcoal)] hover:border-[var(--color-bark)]'
                 }
               `}
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <span className="text-base font-bold leading-tight">{t.label}</span>
                 {selected && (
-                  <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-5 h-5 rounded-full bg-[var(--color-sand)] flex items-center justify-center shrink-0 mt-0.5">
                     <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                      <path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M1 4l2.5 2.5L9 1" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                 )}
               </div>
-              <p className={`text-sm leading-relaxed ${selected ? 'text-white/80' : 'text-[var(--color-muted)]'}`}>
+              <p className="text-sm leading-relaxed text-[var(--color-muted)]">
                 {t.desc}
               </p>
             </button>
