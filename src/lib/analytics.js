@@ -1,10 +1,3 @@
-import ReactGA from 'react-ga4'
-
-export function initGA() {
-  ReactGA.initialize('G-0KX0T2CY6C')
-  ReactGA.send({ hitType: 'pageview', page: '/' })
-}
-
 export function bucketIncome(annual) {
   if (annual < 50000) return 'under_50k'
   if (annual < 75000) return '50k_75k'
@@ -24,5 +17,7 @@ export function bucketGap(monthlyGap) {
 }
 
 export function trackEvent(name, params = {}) {
-  ReactGA.event(name, params)
+  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+    window.gtag('event', name, params)
+  }
 }
