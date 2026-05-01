@@ -325,7 +325,7 @@ const ACTION_URLS = {
   ei: 'https://www.canada.ca/en/services/benefits/ei/ei-maternity-parental.html',
   ccb: 'https://www.canada.ca/en/revenue-agency/services/child-family-benefits/canada-child-benefit-overview.html',
   resp: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/registered-education-savings-plans-resps.html',
-  childcare: 'https://www.canada.ca/en/public-health/services/caring-for-kids/child-care.html',
+  childcare: 'https://www.canada.ca/en/employment-social-development/campaigns/child-care.html',
   qpip: 'https://www.rqap.gouv.qc.ca/en/about-the-plan/general-information/quebec-parental-insurance-plan-qpip',
   wills: 'https://www.canada.ca/en/services/life-events/death/estates-wills.html',
 }
