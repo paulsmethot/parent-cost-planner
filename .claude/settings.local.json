@@ -20,7 +20,9 @@
       "Bash(npm test:*)",
       "Bash(npm i *)",
       "Bash(node -e \"const pkg = require\\('./node_modules/react-ga4/package.json'\\); console.log\\('version:', pkg.version, '| main:', pkg.main, '| module:', pkg.module\\)\")",
-      "Bash(node -e \"const pkg = require\\('./node_modules/react-ga4/package.json'\\); console.log\\(JSON.stringify\\(pkg.exports, null, 2\\)\\)\")"
+      "Bash(node -e \"const pkg = require\\('./node_modules/react-ga4/package.json'\\); console.log\\(JSON.stringify\\(pkg.exports, null, 2\\)\\)\")",
+      "WebSearch",
+      "WebFetch(domain:www.canada.ca)"
     ]
   }
 }

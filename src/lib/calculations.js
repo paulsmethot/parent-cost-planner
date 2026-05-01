@@ -327,7 +327,7 @@ const ACTION_URLS = {
   resp: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/registered-education-savings-plans-resps.html',
   childcare: 'https://www.canada.ca/en/public-health/services/caring-for-kids/child-care.html',
   qpip: 'https://www.rqap.gouv.qc.ca/en/about-the-plan/general-information/quebec-parental-insurance-plan-qpip',
-  wills: 'https://www.canada.ca/en/financial-consumer-agency/services/estate-planning/will.html',
+  wills: 'https://www.canada.ca/en/services/life-events/death/estates-wills.html',
 }
 
 export function buildActionItems(province, _ageMonths, isExpecting, _householdIncome) {
