@@ -564,6 +564,30 @@ If baby age in months < leave duration in months:
   containers at #F1F1F1
 - Total row sublabels removed for cleaner layout
 
+## Analytics (live)
+Two tools run in production:
+- Google Analytics 4: property "Parent Cost Planner", measurement ID G-0KXQT2CY6C. The gtag snippet is in index.html.
+- Vercel Analytics: the <Analytics /> component in src/main.jsx.
+
+Custom GA4 events, all sent through trackEvent() in src/lib/analytics.js:
+
+| Event | Fires when | Parameters |
+|---|---|---|
+| step_1_completed | Step 1 (province, expecting) is submitted | province, is_expecting |
+| step_2_completed | Step 2 (income) is submitted | income_range |
+| step_3_completed | Step 3 (leave type) is submitted | leave_type |
+| step_4_completed | Step 4 (additional costs) is submitted | has_additional_costs |
+| results_viewed | Results screen mounts (once per visit) | province, leave_type, income_range, gap_range |
+| export_pdf | PDF export is chosen | none |
+| export_csv | CSV export is chosen | none |
+
+Key events in GA4: results_viewed (a completed plan). export_pdf and export_csv are to be starred as key events once they have fired at least once.
+
+Rules for any change:
+- Keep these event names and parameter names stable. The step funnel (step_1 to step_4, then results_viewed), completion rate (results_viewed / users) and export counts are the metrics for a future case study, so renaming or removing events breaks the history.
+- Never send raw incomes, dates of birth or any personal values. Income and the monthly gap are only sent as ranges, through bucketIncome() and bucketGap().
+- If a new screen or action is added, add a matching event through trackEvent() and update this table.
+
 ## Pre-launch checklist (for all future launches)
 - Enable Vercel Analytics before launch day
 - Set up branch-based development for all 
@@ -585,9 +609,8 @@ If baby age in months < leave duration in months:
    for already-born babies
 4. US version scoping — research state by 
    state regulatory complexity
-5. Google Analytics 4 — custom event tracking 
-   for step completions, results viewed, and 
-   export actions
+5. Google Analytics 4 custom event tracking:
+   DONE (see the Analytics section above)
 6. Willful partnership — replace government 
    will link with Willful referral link. 
    Requires GA4 engagement data first before 
